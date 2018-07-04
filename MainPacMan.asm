@@ -13,14 +13,14 @@
 display_address: 	.word 0x10010000
 dysplay_size:		.word 2048
 keyboard_address:	.word 0xffff0004
-color_black:		.word 0x00000000
-color_white:		.word 0x00ffffff
 color_blue:		.word 0x001818ff
 color_yellow:		.word 0x00fffe1d
 color_red: 		.word 0x00df0902
 color_pink:		.word 0x00fa9893
 color_ciano:		.word 0x0061fafc
 color_orange:		.word 0x00fc9711
+color_black:		.word 0x00000000
+color_white:		.word 0x00ffffff
 
 #		(Detalhes importantes)
 # 	endereço topo dir:  0
@@ -41,19 +41,341 @@ syscall
 
 # pinta no display o labirinto e os contadores do jogo
 # $a0 - display_address
-# 
 paint_stage_1:
 	la $a0, display_address
-	lw $a3, color_blue
-
+	
+	# pintando pac man
+	lw $a3, color_yellow
+	sw $a3, 1608($a0)
+	
+	# pintando fantasmas
+	lw $a3, color_ciano
+	sw $a3, 4160($a0)
+	lw $a3, color_orange
+	sw $a3, 4164($a0)
+	lw $a3, color_red
+	sw $a3, 4172($a0)
+	lw $a3, color_pink
+	sw $a3, 4176($a0)
+	
 	addi $sp, $sp, -4
 	sw $ra 0($sp)
 	
+	# inicio pintando pontos
+	lw $a3, color_white # cor dos pontos
+	
+	addi $t1, $zero, 512
+	addi $a1, $zero, 524
+	addi $a2, $zero, 2572
+	jal paint_column
+	addi $a1, $zero, 296
+	addi $a2, $zero, 2344
+	jal paint_column
+	addi $a1, $zero, 580
+	addi $a2, $zero, 1092
+	jal paint_column
+	addi $a1, $zero, 588
+	addi $a2, $zero, 1100
+	jal paint_column
+	addi $a1, $zero, 360
+	addi $a2, $zero, 2408
+	jal paint_column
+	addi $a1, $zero, 644
+	addi $a2, $zero, 2692
+	jal paint_column
+	addi $a1, $zero, 1848
+	addi $a2, $zero, 2360
+	jal paint_column
+	addi $a1, $zero, 1880
+	addi $a2, $zero, 2392
+	jal paint_column
+	addi $a1, $zero, 2880
+	addi $a2, $zero, 3392
+	jal paint_column
+	addi $a1, $zero, 2896
+	addi $a2, $zero, 3408
+	jal paint_column
+	addi $a1, $zero, 2840
+	addi $a2, $zero, 4376
+	jal paint_column
+	addi $a1, $zero, 3896
+	addi $a2, $zero, 4408
+	jal paint_column
+	addi $a1, $zero, 3928
+	addi $a2, $zero, 4440
+	jal paint_column
+	addi $a1, $zero, 2936
+	addi $a2, $zero, 4472
+	jal paint_column
+	addi $a1, $zero, 4620
+	addi $a2, $zero, 5644
+	jal paint_column
+	addi $a1, $zero, 4904
+	addi $a2, $zero, 7464
+	jal paint_column
+	addi $a1, $zero, 5188
+	addi $a2, $zero, 7748
+	jal paint_column
+	addi $a1, $zero, 5196
+	addi $a2, $zero, 7756
+	jal paint_column
+	addi $a1, $zero, 4968
+	addi $a2, $zero, 7528
+	jal paint_column
+	addi $a1, $zero, 4740
+	addi $a2, $zero, 5764
+	jal paint_column
+	addi $a1, $zero, 6788
+	addi $a2, $zero, 7812
+	jal paint_column
+	addi $a1, $zero, 6668
+	addi $a2, $zero, 7692
+	jal paint_column
+	
+	addi $t1, $zero, 8
+	addi $a1, $zero, 272
+	addi $a2, $zero, 320
+	jal paint_line
+	addi $a1, $zero, 336
+	addi $a2, $zero, 384
+	jal paint_line
+	addi $a1, $zero, 1548
+	addi $a2, $zero, 1596
+	jal paint_line
+	addi $a1, $zero, 1620
+	addi $a2, $zero, 1668
+	jal paint_line
+	addi $a1, $zero, 2572
+	addi $a2, $zero, 2596
+	jal paint_line
+	addi $a1, $zero, 2668
+	addi $a2, $zero, 2692
+	jal paint_line
+	addi $a1, $zero, 3612
+	addi $a2, $zero, 3700
+	jal paint_line
+	addi $a1, $zero, 4620
+	addi $a2, $zero, 4740
+	jal paint_line
+	addi $a1, $zero, 6416
+	addi $a2, $zero, 6528
+	jal paint_line
+	addi $a1, $zero, 7692
+	addi $a2, $zero, 7812
+	jal paint_line
+	
+	sw $a3, 5652($a0)
+	sw $a3, 5912($a0)
+	sw $a3, 5756($a0)
+	sw $a3, 6008($a0)
+	sw $a3, 2620($a0)
+	sw $a3, 2644($a0)
+	
+	# fim pintando pontos
+	
+	# inicio pintando o STAGE e o PTS
+	lw $a3, color_white
 	addi $t1, $zero, 256
+	
+	addi $a1, $zero, 936
+	addi $a2, $zero, 1960
+	jal paint_column
+	addi $a1, $zero, 948
+	addi $a2, $zero, 1972
+	jal paint_column
+	addi $a1, $zero, 956
+	addi $a2, $zero, 1980
+	jal paint_column
+	addi $a1, $zero, 964
+	addi $a2, $zero, 1988
+	jal paint_column
+	addi $a1, $zero, 1488
+	addi $a2, $zero, 2000
+	jal paint_column
+	addi $a1, $zero, 984
+	addi $a2, $zero, 2008
+	jal paint_column
+	addi $a1, $zero, 1008
+	addi $a2, $zero, 2032
+	jal paint_column
+	addi $a1, $zero, 3732
+	addi $a2, $zero, 4756
+	jal paint_column
+	addi $a1, $zero, 3752
+	addi $a2, $zero, 4776
+	jal paint_column
+	addi $a1, $zero, 3788
+	addi $a2, $zero, 4812
+	jal paint_column
+	addi $a1, $zero, 3796
+	addi $a2, $zero, 4820
+	jal paint_column
+	addi $a1, $zero, 3804
+	addi $a2, $zero, 4828
+	jal paint_column
+	addi $a1, $zero, 3812
+	addi $a2, $zero, 4836
+	jal paint_column
+	addi $a1, $zero, 3820
+	addi $a2, $zero, 4844
+	jal paint_column
+	addi $a1, $zero, 3828
+	addi $a2, $zero, 4852
+	jal paint_column
+	
+	addi $t1, $zero, 4
+	
+	addi $a1, $zero, 916
+	addi $a2, $zero, 924
+	jal paint_line
+	addi $a1, $zero, 1428
+	addi $a2, $zero, 1436
+	jal paint_line
+	addi $a1, $zero, 1940
+	addi $a2, $zero, 1948
+	jal paint_line
+	addi $a1, $zero, 932
+	addi $a2, $zero, 940
+	jal paint_line
+	addi $a1, $zero, 948
+	addi $a2, $zero, 956
+	jal paint_line
+	addi $a1, $zero, 1716
+	addi $a2, $zero, 1724
+	jal paint_line
+	addi $a1, $zero, 964
+	addi $a2, $zero, 976
+	jal paint_line
+	addi $a1, $zero, 1988
+	addi $a2, $zero, 2000
+	jal paint_line
+	addi $a1, $zero, 984
+	addi $a2, $zero, 992
+	jal paint_line
+	addi $a1, $zero, 1496
+	addi $a2, $zero, 1504
+	jal paint_line
+	addi $a1, $zero, 2008
+	addi $a2, $zero, 2016
+	jal paint_line
+	addi $a1, $zero, 2028
+	addi $a2, $zero, 2036
+	jal paint_line
+	addi $a1, $zero, 3764
+	addi $a2, $zero, 3772
+	jal paint_line
+	addi $a1, $zero, 4276
+	addi $a2, $zero, 4284
+	jal paint_line
+	addi $a1, $zero, 4788
+	addi $a2, $zero, 4796
+	jal paint_line
+	
+	sw $a3, 1484($a0)
+	sw $a3, 1260($a0)
+	sw $a3, 1172($a0)
+	sw $a3, 1692($a0)
+	sw $a3, 3736($a0)
+	sw $a3, 3740($a0)
+	sw $a3, 4248($a0)
+	sw $a3, 4252($a0)
+	sw $a3, 3996($a0)
+	sw $a3, 3748($a0)
+	sw $a3, 3756($a0)
+	sw $a3, 4020($a0)
+	sw $a3, 4540($a0)
+	sw $a3, 4036($a0)
+	sw $a3, 4804($a0)
+	sw $a3, 3792($a0)
+	sw $a3, 3808($a0)
+	sw $a3, 3824($a0)
+	sw $a3, 4816($a0)
+	sw $a3, 4832($a0)
+	sw $a3, 4848($a0)
+	# fim pintando o STAGE e o PTS
+	
+	# inicio pintanto as três vidas do pac man
+	lw $a3, color_yellow
+	
+	addi $t1, $zero, 4
+	
+	addi $a1, $zero, 6304
+	addi $a2, $zero, 6312
+	jal paint_line
+	addi $a1, $zero, 6556
+	addi $a2, $zero, 6572
+	jal paint_line
+	addi $a1, $zero, 6808
+	addi $a2, $zero, 6820
+	jal paint_line
+	addi $a1, $zero, 7320
+	addi $a2, $zero, 7332
+	jal paint_line
+	addi $a1, $zero, 7580
+	addi $a2, $zero, 7596
+	jal paint_line
+	addi $a1, $zero, 7840
+	addi $a2, $zero, 7848
+	jal paint_line
+	addi $a1, $zero, 6336
+	addi $a2, $zero, 6344
+	jal paint_line
+	addi $a1, $zero, 6588
+	addi $a2, $zero, 6604
+	jal paint_line
+	addi $a1, $zero, 6840
+	addi $a2, $zero, 6852
+	jal paint_line
+	addi $a1, $zero, 7352
+	addi $a2, $zero, 7364
+	jal paint_line
+	addi $a1, $zero, 7612
+	addi $a2, $zero, 7628
+	jal paint_line
+	addi $a1, $zero, 7872
+	addi $a2, $zero, 7880
+	jal paint_line
+	addi $a1, $zero, 6368
+	addi $a2, $zero, 6376
+	jal paint_line
+	addi $a1, $zero, 6620
+	addi $a2, $zero, 6636
+	jal paint_line
+	addi $a1, $zero, 6872
+	addi $a2, $zero, 6884
+	jal paint_line
+	addi $a1, $zero, 7384
+	addi $a2, $zero, 7396
+	jal paint_line
+	addi $a1, $zero, 7644
+	addi $a2, $zero, 7660
+	jal paint_line
+	addi $a1, $zero, 7904
+	addi $a2, $zero, 7912
+	jal paint_line
+	
+	sw $a3, 7064($a0)
+	sw $a3, 7068($a0)
+	sw $a3, 7096($a0)
+	sw $a3, 7100($a0)
+	sw $a3, 7128($a0)
+	sw $a3, 7132($a0)
+	# fim pintanto as três vidas do pac man
+	
+	# inicio pintando labirinto
+	lw $a3, color_blue # cor das paredes
+	addi $t1, $zero, 256
+	
 	addi $a1, $zero, 8
+	addi $a2, $zero, 2824
+	jal paint_column
+	addi $a1, $zero, 4360
 	addi $a2, $zero, 7944
 	jal paint_column
 	addi $a1, $zero, 136
+	addi $a2, $zero, 2952
+	jal paint_column
+	addi $a1, $zero, 4488
 	addi $a2, $zero, 8072
 	jal paint_column
 	addi $a1, $zero, 328
@@ -90,10 +412,10 @@ paint_stage_1:
 	addi $a2, $zero, 2660
 	jal paint_column
 	addi $a1, $zero, 1844
-	addi $a2, $zero, 3124
+	addi $a2, $zero, 2868
 	jal paint_column
 	addi $a1, $zero, 1884
-	addi $a2, $zero, 3164
+	addi $a2, $zero, 2908
 	jal paint_column
 	addi $a1, $zero, 2372
 	addi $a2, $zero, 3140
@@ -103,6 +425,7 @@ paint_stage_1:
 	jal paint_column
 	
 	addi $t1, $zero, 4
+	
 	addi $a1, $zero, 8
 	addi $a2, $zero, 136
 	jal paint_line
@@ -218,9 +541,9 @@ paint_stage_1:
 	addi $a2, $zero, 2860
 	jal paint_line
 	addi $a1, $zero, 3356
-	addi $a2, $zero, 3380
+	addi $a2, $zero, 3388
 	jal paint_line
-	addi $a1, $zero, 3420
+	addi $a1, $zero, 3412
 	addi $a2, $zero, 3444
 	jal paint_line
 	addi $a1, $zero, 2916
@@ -244,18 +567,28 @@ paint_stage_1:
 	addi $a1, $zero, 3848
 	addi $a2, $zero, 3860
 	jal paint_line
-	#addi $a1, $zero, 
-	#addi $a2, $zero, 
-	#jal paint_line
-	
-	
-	lw $a3, color_black
-	sw $a3, 3080($a0)
-	sw $a3, 4104($a0)
-	sw $a3, 3208($a0)
-	sw $a3, 4232($a0)
-	
-	lw $a3, color_blue
+	addi $a1, $zero, 2940
+	addi $a2, $zero, 2952
+	jal paint_line
+	addi $a1, $zero, 3452
+	addi $a2, $zero, 3464
+	jal paint_line
+	addi $a1, $zero, 3868
+	addi $a2, $zero, 3892
+	jal paint_line
+	addi $a1, $zero, 4380
+	addi $a2, $zero, 4404
+	jal paint_line
+	addi $a1, $zero, 4444
+	addi $a2, $zero, 4468
+	jal paint_line
+	addi $a1, $zero, 3932
+	addi $a2, $zero, 3956
+	jal paint_line
+	addi $a1, $zero, 4412
+	addi $a2, $zero, 4436
+	jal paint_line
+
 	sw $a3, 784($a0)
 	sw $a3, 1040($a0)
 	sw $a3, 804($a0)
@@ -305,24 +638,36 @@ paint_stage_1:
 	sw $a3, 1888($a0)
 	sw $a3, 2872($a0)
 	sw $a3, 2876($a0)
-	sw $a3, 3128($a0)
 	sw $a3, 3132($a0)
 	sw $a3, 2900($a0)
 	sw $a3, 2904($a0)
 	sw $a3, 3156($a0)
-	sw $a3, 3160($a0)
 	sw $a3, 3100($a0)
 	sw $a3, 3188($a0)
 	sw $a3, 2364($a0)
 	sw $a3, 2368($a0)
 	sw $a3, 2384($a0)
 	sw $a3, 2388($a0)
-	sw $a3, 3144($a0)
+	sw $a3, 3400($a0)
 	sw $a3, 3092($a0)
 	sw $a3, 4116($a0)
 	sw $a3, 3196($a0)
 	sw $a3, 4220($a0)
-	
+	sw $a3, 3396($a0)
+	sw $a3, 3404($a0)
+	sw $a3, 4124($a0)
+	sw $a3, 4148($a0)
+	sw $a3, 4156($a0)
+	sw $a3, 3900($a0)
+	sw $a3, 3904($a0)
+	sw $a3, 3908($a0)
+	sw $a3, 3916($a0)
+	sw $a3, 3920($a0)
+	sw $a3, 3924($a0)
+	sw $a3, 4188($a0)
+	sw $a3, 4212($a0)
+	sw $a3, 4180($a0)
+	# fim pintando labirinto
 	
 	lw $ra 0($sp)
 	addi $sp, $sp, 4
