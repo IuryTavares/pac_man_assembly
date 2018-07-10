@@ -11,16 +11,16 @@
 
 .data
 display_address: 	.word 0x10010000
-dysplay_size:		.word 2048
-keyboard_address:	.word 0xffff0004
-color_blue:		.word 0x001818ff
-color_yellow:		.word 0x00fffe1d
-color_red: 		.word 0x00df0902
-color_pink:		.word 0x00fa9893
-color_ciano:		.word 0x0061fafc
-color_orange:		.word 0x00fc9711
+display_size:		.word 2048
+keyboard_address:	.word 0xFFFF0004
+color_blue:		.word 0x001818FF
+color_yellow:		.word 0x00FFFE1D
+color_red: 		.word 0x00DF0902
+color_pink:		.word 0x00FA9893
+color_ciano:		.word 0x0061FAFC
+color_orange:		.word 0x00FC9711
 color_black:		.word 0x00000000
-color_white:		.word 0x00ffffff
+color_white:		.word 0x00FFFFFF
 
 #		(Detalhes importantes)
 # 	endereço topo dir:  0
@@ -31,13 +31,165 @@ color_white:		.word 0x00ffffff
 #	mover p/ direita:  address+4
 #	mover p/ cima:     address-256
 #	mover p/ baixo:	   address+256
+#	$s0 - posição do pac man	
+#	$s1 - posição do fantasma azul
+#	$s2 - posição do fantasma laranja
+#	$s3 - posição do fantasma vermelho
+#	$s4 - posição do fantasma rosa
 
 .text
 .globl main
 main:
 	jal paint_stage_1
+	jal salvar_posicao_inicial_personagens
+	
+	# enquanto $s7 diferente de 0
+	li $s7, 1
+	loop_stage_1:
+	beq $zero, $s7, end_loop_stage_1
+		
+		li $a0, 60
+		jal sleep
+		
+		jal mover_teste		
+		
+		#jal capturar_tecla
+		#jal mover_pac_man
+	j loop_stage_1
+	end_loop_stage_1:
+	
 li $v0, 10
 syscall
+
+mover_teste:
+	lw $a0, display_address
+	addi $t0, $a0, 1608 # endereço que o pac man está
+	lw $t1, color_black
+	lw $t2, color_yellow
+	
+	li $v0, 12
+	syscall
+	beq $v0, 119, w
+	j nao_w
+	w:
+		sw $t1, 0($t0)
+		sub $t0, $t0, 256
+		sw $t2, 0($t0)
+	j leu
+	nao_w:
+	beq $v0, 119, a
+	j nao_a
+	a:
+		sw $t1, 0($t0)
+		sub $t0, $t0, 4
+		sw $t2, 0($t0)
+	j leu
+	nao_a:
+	beq $v0, 119, s
+	j nao_s
+	s:
+		sw $t1, 0($t0)
+		add $t0, $t0, 256
+		sw $t2, 0($t0)
+	j leu
+	nao_s:
+	beq $v0, 119, d
+	j nao_d
+	d:
+		sw $t1, 0($t0)
+		add $t0, $t0, 4
+		sw $t2, 0($t0)
+	j leu
+	nao_d:
+	leu:
+jr $ra
+
+# mover o pac man na direção indicada
+# $a0 - posição atual do pac man
+# $a1 - nova posição do pac man (retorno da função "capturar tecla" $v0)
+mover_pac_man:
+	lw $t0, color_black
+	lw $t1, color_blue
+	
+	sw $t0, ($a0)
+	sw $t1, ($a1)
+	
+	end_mover_pac_man:
+jr $ra
+
+# recebe do teclado a direção que o pac man irá se mover
+# $a0 - keyboard_address
+# $v0 - retorna a próxima posição que o pac man tentará se mover
+capturar_tecla:
+	lw $a0, keyboard_address
+	move $t0, $s0 # move para t0 a posição atual do pac man 
+	# case w
+	beq $a0, 119, teclou_w
+	j nao_teclou_w
+	teclou_w:
+		sub $v0, $t0, 256
+	j capturou_tecla
+	nao_teclou_w:
+	# case a
+	beq $a0, 97, teclou_a
+	j nao_teclou_a
+	teclou_a:
+		sub $v0, $t0, 4
+	j capturou_tecla
+	nao_teclou_a:
+	# case s
+	beq $a0, 115, teclou_s
+	j nao_teclou_s
+	teclou_s:
+		add $v0, $t0, 256
+	j capturou_tecla
+	nao_teclou_s:
+	# case d
+	beq $a0, 100, teclou_d
+	j nao_teclou_d
+	teclou_d:
+		add $v0, $t0, 4
+	j capturou_tecla
+	nao_teclou_d:
+	# se nenhuma tecla acima for pressionada o pac man continua o movimento anterior
+	capturou_tecla:
+jr $ra
+
+# recebe em $a0 o tempo (em mili segundos) que o programa dará o sleep
+sleep:
+	li $v0, 32
+	syscall
+jr $ra
+
+# salva a posição inicial dos personagens de acordo com o stage atual
+# $a0 - display_address
+# $a1 - stage atual (1 - stage 1) (2 - stage 2)
+# $s0 $s1 $s2 $s3 $s4
+salvar_posicao_inicial_personagens:
+	la $a0, display_address
+	# case 1
+	beq $a1, 1, stage_1
+	j stage_2
+	stage_1:
+		addi $s0, $a0, 1608 # pac man      
+		addi $s1, $a0, 4160 # blue ghost   
+		addi $s2, $a0, 4164 # orange ghost 
+		addi $s3, $a0, 4172 # red ghost    
+		addi $s4, $a0, 4176 # pink ghost   
+	j fim_set_posicao
+	not_stage_1:
+	# case 2
+	beq $a1, 2, stage_2
+	j not_stage_2
+	stage_2:   # falta implementar MUDAR APENAS OS IMEDIATOS
+	#	addi $s0, $a0, 1608 # pac man      
+	#	addi $s1, $a0, 4160 # blue ghost   
+	#	addi $s2, $a0, 4164 # orange ghost 
+	#	addi $s3, $a0, 4172 # red ghost    
+	#	addi $s4, $a0, 4176 # pink ghost   
+	not_stage_2:
+	fim_set_posicao:
+jr $ra
 
 # pinta no display o labirinto e os contadores do jogo
 # $a0 - display_address
