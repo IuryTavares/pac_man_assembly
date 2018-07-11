@@ -36,18 +36,38 @@ color_white:		.word 0x00FFFFFF
 #	$s2 - posição do fantasma laranja
 #	$s3 - posição do fantasma vermelho
 #	$s4 - posição do fantasma rosa
+#	$s5 - armazena o stage atual (1 ou 2)
+#	$s6 - armazena a quantidade de vidas (3 no máximo)
 
 .text
 .globl main
 main:
 	jal paint_stage_1
+	jal paint_pts
+	li $s5, 1            # indicando que estamos no stage 1
+	jal paint_stage_text
+	li $s6, 3
+	jal paint_lives
 	
 	li $t9, 1   # while $t9 diferente de 0 o jogo continua
 	game_loop:
 	beq $zero, $t9, end_game_loop 
-	jal movimentar_syscall
-	j game_loop
+	#jal movimentar_syscall
+	#j game_loop
 	end_game_loop:
+	
+	li $a1, 7
+	li $a2, 1
+	jal contador_display
+	
+	li $a1, 8
+	li $a2, 2
+	jal contador_display
+	
+	li $a1, 9
+	li $a2, 3
+	jal contador_display
+	
 li $v0, 10
 syscall
 
@@ -129,98 +149,6 @@ jr $ra
 sleep:
 	li $v0, 32
 	syscall
-jr $ra
-
-# considero o terceiro contador como padrão
-# se for o contador 3 nçao incremento o reg contador
-# se for o contador 2 incrementar o counter em 16
-# se for o contador 2 incrementar o counter em 32
-# $a1 - valor a ser pintado
-# $a2 - display a ser pintado (3 - msd, 1 - lsb)
-contador_display:
-	la $a0, display_address
-	addi $t0, $a0, 3532 # endereço inicial do contador 3
-	
-	# case 0
-	beq $a1, 0, pintar_0
-	j nao_pintar_0
-	pintar_0:
-		
-	j fim_contador_display
-	nao_pintar_0:
-	# case 1
-	beq $a1, 1, pintar_1
-	j nao_pintar_1
-	pintar_1:
-		
-	j fim_contador_display
-	nao_pintar_1:
-	# case 2
-	beq $a1, 2, pintar_2
-	j nao_pintar_2
-	pintar_2:
-		
-	j fim_contador_display
-	nao_pintar_2:
-	# case 3
-	beq $a1, 3, pintar_3
-	j nao_pintar_3
-	pintar_3:
-		
-	j fim_contador_display
-	nao_pintar_3:
-	# case 4
-	beq $a1, 4, pintar_4
-	j nao_pintar_4
-	pintar_4:
-		
-	j fim_contador_display
-	nao_pintar_4:
-	# case 5
-	beq $a1, 5, pintar_5
-	j nao_pintar_5
-	pintar_5:
-		
-	j fim_contador_display
-	nao_pintar_5:
-	# case 6
-	beq $a1, 6, pintar_6
-	j nao_pintar_6
-	pintar_6:
-		
-	j fim_contador_display
-	nao_pintar_6:
-	# case 7
-	beq $a1, 7, pintar_7
-	j nao_pintar_7
-	pintar_7:
-		
-	j fim_contador_display
-	nao_pintar_7:
-	# case 8
-	beq $a1, 8, pintar_8
-	j nao_pintar_8
-	pintar_8:
-		
-	j fim_contador_display
-	nao_pintar_8:
-	# case 9
-	beq $a1, 9, pintar_9
-	j nao_pintar_9
-	pintar_9:
-		
-	j fim_contador_display
-	nao_pintar_9:
-	
-	fim_contador_display:
-jr $ra
-
-contador_2:
-
-jr $ra
-
-contador_3:
-
 jr $ra
 
 # pinta no display o labirinto e os contadores do jogo
@@ -715,6 +643,434 @@ paint_stage_1:
 	addi $s4, $a0, 7280 # pink ghost
 jr $ra
 
+paint_pts:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+	lw $a3, color_white
+	li $t1, 4
+	
+	li $a1, 3480
+	li $a2, 3484
+	jal paint_line
+	
+	li $a1, 3992
+	li $a2, 3996
+	jal paint_line
+	
+	li $a1, 3492
+	li $a2, 3500
+	jal paint_line
+	
+	li $a1, 3508
+	li $a2, 3516
+	jal paint_line
+	
+	li $a1, 4020
+	li $a2, 4028
+	jal paint_line
+	
+	li $a1, 4532
+	li $a2, 4540
+	jal paint_line
+	
+	li $t1, 256
+	
+	li $a1, 3476
+	li $a2, 4500
+	jal paint_line
+	
+	li $a1, 3752
+	li $a2, 4520
+	jal paint_line
+	
+	sw $a3, 3740($a0)
+	sw $a3, 3764($a0)
+	sw $a3, 4284($a0)
+	sw $a3, 3780($a0)
+	sw $a3, 4548($a0)
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+jr $ra
+
+# pinta o TEXTO stage e o valor do stage atual
+# $s5 - armazena o valor do stage atual
+paint_stage_text:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+	lw $a3, color_white
+	li $t1, 4
+	
+	li $a1, 660
+	li $a2, 668
+	jal paint_line
+	
+	li $a1, 1172
+	li $a2, 1180
+	jal paint_line
+	
+	li $a1, 1684
+	li $a2, 1692
+	jal paint_line
+	
+	li $a1, 676
+	li $a2, 684
+	jal paint_line
+	
+	li $a1, 692
+	li $a2, 700
+	jal paint_line
+	
+	li $a1, 708
+	li $a2, 720
+	jal paint_line
+	
+	li $a1, 1732
+	li $a2, 1744
+	jal paint_line
+	
+	li $t1, 256
+	
+	li $a1, 936
+	li $a2, 1704
+	jal paint_line
+	
+	li $a1, 948
+	li $a2, 1716
+	jal paint_line
+	
+	li $a1, 956
+	li $a2, 1724
+	jal paint_line
+	
+	li $a1, 964
+	li $a2, 1476
+	jal paint_line
+	
+	li $a1, 728
+	li $a2, 1752
+	jal paint_line
+		
+	sw $a3, 916($a0)
+	sw $a3, 1436($a0)
+	sw $a3, 1464($a0)
+	sw $a3, 1228($a0)
+	sw $a3, 1232($a0)
+	sw $a3, 1488($a0)
+	sw $a3, 732($a0)
+	sw $a3, 736($a0)
+	sw $a3, 1244($a0)
+	sw $a3, 1248($a0)
+	sw $a3, 1756($a0)
+	sw $a3, 1760($a0)
+
+	beq $s5, 1, stage_1_texto
+	j nao_stage_1_texto
+	stage_1_texto:
+		lw $a3, color_white
+		li $t1, 4
+		
+		li $a1, 1772
+		li $a2, 1780
+		jal paint_line
+		
+		li $t1, 256
+		
+		li $a1, 752
+		li $a2, 1520
+		jal paint_line
+		
+		sw $a3, 1004($a0)
+		
+		lw $a3, color_black
+		
+		sw $a3, 748($a0)
+		sw $a3, 756($a0)
+		sw $a3, 1260($a0)
+		sw $a3, 1516($a0)
+		sw $a3, 1012($a0)
+		sw $a3, 1268($a0)
+		sw $a3, 1524($a0)
+	j nao_stage_2_texto
+	nao_stage_1_texto:
+	
+	beq $s5, 2, stage_2_texto
+	j nao_stage_2_texto
+	stage_2_texto:
+		lw $a3, color_white
+		li $t1, 4
+		
+		li $a1, 748
+		li $a2, 756
+		jal paint_line
+		
+		li $a1, 1260
+		li $a2, 1268
+		jal paint_line
+		
+		li $a1, 1772
+		li $a2, 1780
+		jal paint_line
+
+		sw $a3, 1012($a0)
+		sw $a3, 1516($a0)
+		
+		lw $a3, color_black
+		
+		sw $a3, 1004($a0)
+		sw $a3, 1008($a0)
+		sw $a3, 1520($a0)
+		sw $a3, 1524($a0)
+	nao_stage_2_texto:
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+jr $ra
+
+# pinta os "pac man's" grandes que representam as vidas
+# pinta de acordo com a quantidade de vidas armazenados em $s6
+# $s6 - quantidade de vidas
+paint_lives:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	la $a0, display_address
+	lw $a3, color_yellow
+	
+	li $t0, 0 # contador do laço
+	li $t1, 0 # contador do endereço do pac man (conta de 32 a 32)
+	paint_lives_loop:
+	beq $t0, $s6, end_paint_lives_loop
+		addi $t2, $a0, 6048
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6052
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6056
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6300
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6304
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6308
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6312
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6316
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6552
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6556
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6560
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6564
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6808
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6812
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7064
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7068
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7072
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7076
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7324
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7328
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7332
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7336
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7340
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7584
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7588
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7592
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+	addi $t1, $t1, 32
+	addi $t0, $t0, 1
+	j paint_lives_loop
+	end_paint_lives_loop:
+	
+	li $t0, 3 # valor auxiliar para subtracao
+	li $t1, 0 # contador do address
+	li $t4, 0 # contador do laço
+	sub $t3, $t0, $s6  
+	lw $a3, color_black
+	
+	# pinta de preto as vidas perdidas
+	paint_black_lives_loop:
+	beq $t4, $t3, end_paint_black_lives_loop
+		addi $t2, $a0, 6048
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6052
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6056
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6300
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6304
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6308
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6312
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6316
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6552
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6556
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6560
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6564
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6808
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 6812
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7064
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7068
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7072
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7076
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7324
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7328
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7332
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7336
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7340
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7584
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7588
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+		
+		addi $t2, $a0, 7592
+		add $t2, $t2, $t1
+		sw $a3, 0($t2)
+	addi $t1, $t1, 32	
+	addi $t4, $t4, 1
+	j paint_black_lives_loop
+	end_paint_black_lives_loop:
+		
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+jr $ra
+
 # pinta uma linha dentro de um intervalo determinado
 # $a0 - display_address
 # $a1 - endereço inicial
@@ -730,4 +1086,729 @@ paint_line:
 	add $a1, $a1, $t1
 	j paint_line_loop
 	end_paint_line_loop:
+jr $ra
+
+# considero o terceiro contador como padrão
+# se for o contador 3 nçao incremento o reg contador
+# se for o contador 2 incrementar o counter em 16
+# se for o contador 2 incrementar o counter em 32
+# $a1 - valor a ser pintado
+# $a2 - (1 = msb, 3 = lsb)
+contador_display:
+	la $a0, display_address
+	
+	# contador 3
+	beq $a2, 3, contador_3
+	j nao_contador_3
+	contador_3:
+		li $t0, 32
+	j nao_contador_1
+	nao_contador_3:
+	# contador 2
+	beq $a2, 2, contador_2
+	j nao_contador_2
+	contador_2:
+		li $t0, 16
+	j nao_contador_1
+	nao_contador_2:
+	# contador 1
+	beq $a2, 1, contador_1
+	j nao_contador_1
+	contador_1:
+		li $t0, 0
+	nao_contador_1:
+	
+	# case 0
+	beq $a1, 0, pintar_0
+	j nao_pintar_0
+	pintar_0:
+		lw $t2, color_white
+	
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+	j fim_contador_display
+	nao_pintar_0:
+	# case 1
+	beq $a1, 1, pintar_1
+	j nao_pintar_1
+	pintar_1:
+		lw $t2, color_white
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+	j fim_contador_display
+	nao_pintar_1:
+	# case 2
+	beq $a1, 2, pintar_2
+	j nao_pintar_2
+	pintar_2:
+		lw $t2, color_white
+	
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+	j fim_contador_display
+	nao_pintar_2:
+	# case 3
+	beq $a1, 3, pintar_3
+	j nao_pintar_3
+	pintar_3:
+		lw $t2, color_white
+	
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+	j fim_contador_display
+	nao_pintar_3:
+	# case 4
+	beq $a1, 4, pintar_4
+	j nao_pintar_4
+	pintar_4:
+		lw $t2, color_white
+	
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+	j fim_contador_display
+	nao_pintar_4:
+	# case 5
+	beq $a1, 5, pintar_5
+	j nao_pintar_5
+	pintar_5:
+		lw $t2, color_white
+	
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+	j fim_contador_display
+	nao_pintar_5:
+	# case 6
+	beq $a1, 6, pintar_6
+	j nao_pintar_6
+	pintar_6:
+		lw $t2, color_white
+	
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+	j fim_contador_display
+	nao_pintar_6:
+	# case 7
+	beq $a1, 7, pintar_7
+	j nao_pintar_7
+	pintar_7:
+		lw $t2, color_white
+	
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+	j fim_contador_display
+	nao_pintar_7:
+	# case 8
+	beq $a1, 8, pintar_8
+	j nao_pintar_8
+	pintar_8:
+		lw $t2, color_white
+	
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+	j fim_contador_display
+	nao_pintar_8:
+	# case 9
+	beq $a1, 9, pintar_9
+	j nao_pintar_9
+	pintar_9:
+		lw $t2, color_white
+	
+		addi $t1, $a0, 3532
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3536
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3540
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4044
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4048
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4052
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4556
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4560
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4564
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3788
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 3796
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4308
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		lw $t2, color_black
+		
+		addi $t1, $a0, 3792
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4300
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+		
+		addi $t1, $a0, 4304
+		add $t1, $t1, $t0
+		sw $t2, 0($t1)
+	j fim_contador_display
+	nao_pintar_9:
+	
+	fim_contador_display:
 jr $ra
