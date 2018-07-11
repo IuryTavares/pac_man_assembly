@@ -49,25 +49,24 @@ main:
 	li $s6, 3
 	jal paint_lives
 	
-	li $t9, 1   # while $t9 diferente de 0 o jogo continua
-	game_loop:
-	beq $zero, $t9, end_game_loop 
-	#jal movimentar_syscall
-	#j game_loop
-	end_game_loop:
-	
-	li $a1, 7
+	li $a1, 0
 	li $a2, 1
 	jal contador_display
 	
-	li $a1, 8
+	li $a1, 0
 	li $a2, 2
 	jal contador_display
 	
-	li $a1, 9
+	li $a1, 0
 	li $a2, 3
 	jal contador_display
 	
+	li $t9, 1   # while $t9 diferente de 0 o jogo continua
+	game_loop:
+	beq $zero, $t9, end_game_loop 
+		jal movimentar_syscall
+	#j game_loop
+	end_game_loop:
 li $v0, 10
 syscall
 
