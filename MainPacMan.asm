@@ -37,53 +37,123 @@ color_white:		.word 0x00FFFFFF
 #	$s3 - posição do fantasma vermelho
 #	$s4 - posição do fantasma rosa
 #	$s5 - armazena o stage atual (1 ou 2)
-#	$s6 - armazena a quantidade de vidas (3 no máximo)
+#	$s6 - armazena a quantidade de vidas (3 a 0)
+#	$s7 - salva a pontuação atual do jogo
+
+.macro speed(%speed_in_miliseconds)
+	li $a0, %speed_in_miliseconds
+	li $v0, 32
+	syscall
+.end_macro 
 
 .text
 .globl main
 main:
-	jal paint_stage_1
-	jal paint_pts
-	li $s5, 1            # indicando que estamos no stage 1
+	# configuações iniciais
+	li $s5, 1            	# indicando que estamos no stage 1
+	li $s6, 3		# indicando que temos 3 vidas iniciais
+	li $s7, 0		# indicando que a pontuação inicial é zero
+	
+	# pintando os textos do display
 	jal paint_stage_text
-	li $s6, 3
-	jal paint_lives
+	jal paint_pts
+	jal paint_lives	
+	jal contador_da_pontuacao
 	
-	li $a1, 0
-	li $a2, 1
-	jal contador_display
+	# pintando o stage 1
+	#jal paint_stage_1
 	
-	li $a1, 0
-	li $a2, 2
-	jal contador_display
+	game_loop_stage_1:
+	beq $zero, $s6, end_game_loop_stage_1 
+		speed(200) # velocidade do pac man
+		jal mover_pac_man
+		jal contador_da_pontuacao
+	#j game_loop_stage_1
+	end_game_loop_stage_1:
 	
-	li $a1, 0
-	li $a2, 3
-	jal contador_display
+	# pintando o stage 2
+	jal paint_stage_2
 	
-	li $t9, 1   # while $t9 diferente de 0 o jogo continua
-	game_loop:
-	beq $zero, $t9, end_game_loop 
-		jal movimentar_syscall
-	#j game_loop
-	end_game_loop:
-li $v0, 10
+	game_loop_stage_2:
+	beq $zero, $s6, end_game_loop_stage_2 
+		#speed(200) # velocidade do pac man
+		#jal mover_pac_man
+		#jal contador_da_pontuacao
+	#j game_loop_stage_2
+	end_game_loop_stage_2:
+	
+li $v0, 10 # fim do programa
 syscall
 
-movimentar_syscall:
+# checa se o pac man tocou em algum fantasma
+checar_colisão_fantasma:
+	
+jr $ra
+
+# pinta no display a pontuação atual
+# recebe a pontuação em $s7
+contador_da_pontuacao:
+	move $t8, $s7 # guarda num registrador auxiliar a pontuação total
+
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+	# armazenando o dígito da centena em $t1
+	div $t1, $t8, 100	#
+	mul $t4, $t1, 100	#	PINTANDO O DISPLAY DA CENTENA
+	sub $t8, $t8, $t4	#
+				#
+	move $a1, $t1		# valor a ser pintado
+	li $a2, 1		# display a ser pintado
+	jal contador_display
+	
+	lw $t0, 4($sp)
+	
+	# armazenando o dígito da dezena em $t2
+	div $t2, $t8, 10	#
+	mul $t4, $t2, 10	#	PINTANDO O DISPLAY DA DEZENA
+	sub $t8, $t8, $t4	#
+				#
+	move $a1, $t2		# valor a ser pintado
+	li $a2, 2		# display a ser pintado
+	jal contador_display
+	
+	# armazenando o dígito da unidade em $t3
+	move $t3, $t8		#
+				#
+	move $a1, $t3		# valor a ser pintado
+	li $a2, 3		# display a ser pintado
+	jal contador_display
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+jr $ra
+
+mover_pac_man:
 	la $a0, display_address  # se nao pegar, testar com load word
-	li $v0, 12
-	syscall
+	
+	#li $v0, 12 		# movimento com syscall
+	#syscall
+	
+	lw $v0, 0xffff0004	# movimento com keyboard
+	
 	beq $v0, 119, mover_w
 	j nao_mover_w
 	mover_w:
 		# a antiga posicao está em $s0
 		# armazeno a nova posiçao em $t0
-		sub $t0, $s0, 256  	# calculo a nova posição e armazeno em $t0
-		lw $t1, color_blue		# carrego a cor branca em $t1
-		lw $t2, 0($t0)		# carrego o conteudo da nova posição
-		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor branca, nao mover
-		# pode mover
+		sub $t0, $s0, 256  			# calculo a nova posição e armazeno em $t0
+		lw $t1, color_blue			# carrego a cor branca em $t1
+		lw $t2, 0($t0)				# carrego o conteudo da nova posição
+		beq $t2, $t1, fim_movimentar_syscall 	# PAREDE, NÃO MOVER
+		lw $t1, color_white
+		
+		beq $t2, $t1, incrementar_pontuacao_w 	# INCREMENTAR PONTUACAO
+		j nao_incrementar_pontuacao_w
+		incrementar_pontuacao_w:
+			addi $s7, $s7, 1
+		nao_incrementar_pontuacao_w:
+		
 		lw $t1, color_yellow
 		sw $t1, 0($t0) # nova posição de vermelho
 		lw $t1, color_black #  pinta posição antiga de preto
@@ -95,15 +165,22 @@ movimentar_syscall:
 	beq $v0, 97, mover_a
 	j nao_mover_a
 	mover_a:
-		sub $t0, $s0, 4  	# calculo a nova posição e armazeno em $t0
-		lw $t1, color_blue		# carrego a cor branca em $t1
-		lw $t2, 0($t0)		# carrego o conteudo da nova posição
-		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor branca, nao mover
-		# pode mover
+		sub $t0, $s0, 4  			# calculo a nova posição e armazeno em $t0
+		lw $t1, color_blue			# carrego a cor branca em $t1
+		lw $t2, 0($t0)				# carrego o conteudo da nova posição
+		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor azul, nao mover
+		lw $t1, color_white
+		
+		beq $t2, $t1, incrementar_pontuacao_a 	# INCREMENTAR PONTUACAO
+		j nao_incrementar_pontuacao_a
+		incrementar_pontuacao_a:
+			addi $s7, $s7, 1
+		nao_incrementar_pontuacao_a:
+		
 		lw $t1, color_yellow
-		sw $t1, 0($t0) # nova posição de vermelho
-		lw $t1, color_black  # pinta posição antida de preto
-		sw $t1, 0($s0) # posição antiga do personagem
+		sw $t1, 0($t0) 				# nova posição de vermelho
+		lw $t1, color_black  			# pinta posição antida de preto
+		sw $t1, 0($s0) 				# posição antiga do personagem
 		# atualiza posição de memoria do $v0
 		sub $s0, $s0, 4
 	j fim_movimentar_syscall
@@ -111,15 +188,22 @@ movimentar_syscall:
 	beq $v0, 115, mover_s
 	j nao_mover_s
 	mover_s:
-		add $t0, $s0, 256  	# calculo a nova posição e armazeno em $t0
-		lw $t1, color_blue		# carrego a cor branca em $t1
-		lw $t2, 0($t0)		# carrego o conteudo da nova posição
-		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor branca, nao mover
-		# pode mover
+		add $t0, $s0, 256  			# calculo a nova posição e armazeno em $t0
+		lw $t1, color_blue			# carrego a cor branca em $t1
+		lw $t2, 0($t0)				# carrego o conteudo da nova posição
+		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor azul, nao mover
+		lw $t1, color_white
+		
+		beq $t2, $t1, incrementar_pontuacao_s 	# INCREMENTAR PONTUACAO
+		j nao_incrementar_pontuacao_s
+		incrementar_pontuacao_s:
+			addi $s7, $s7, 1
+		nao_incrementar_pontuacao_s:
+		
 		lw $t1, color_yellow
-		sw $t1, 0($t0) # nova posição de vermelho
-		lw $t1, color_black  # pinta posição antida de preto
-		sw $t1, 0($s0) # posição antiga do personagem
+		sw $t1, 0($t0) 				# nova posição de vermelho
+		lw $t1, color_black  			# pinta posição antida de preto
+		sw $t1, 0($s0) 				# posição antiga do personagem
 		# atualiza posição de memoria do $v0
 		add $s0, $s0, 256
 	j fim_movimentar_syscall
@@ -127,15 +211,22 @@ movimentar_syscall:
 	beq $v0, 100, mover_d
 	j nao_mover_d
 	mover_d:
-		add $t0, $s0, 4  	# calculo a nova posição e armazeno em $t0
-		lw $t1, color_blue		# carrego a cor branca em $t1
-		lw $t2, 0($t0)		# carrego o conteudo da nova posição
-		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor branca, nao mover
-		# pode mover
+		add $t0, $s0, 4  			# calculo a nova posição e armazeno em $t0
+		lw $t1, color_blue			# carrego a cor branca em $t1
+		lw $t2, 0($t0)				# carrego o conteudo da nova posição
+		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor azul, nao mover
+		lw $t1, color_white
+		
+		beq $t2, $t1, incrementar_pontuacao_d 	# INCREMENTAR PONTUACAO
+		j nao_incrementar_pontuacao_d
+		incrementar_pontuacao_d:
+			addi $s7, $s7, 1
+		nao_incrementar_pontuacao_d:
+		
 		lw $t1, color_yellow
-		sw $t1, 0($t0) # nova posição de vermelho
-		lw $t1, color_black  # pinta posição antida de preto
-		sw $t1, 0($s0) # posição antiga do personagem
+		sw $t1, 0($t0) 				# nova posição de vermelho
+		lw $t1, color_black 			# pinta posição antida de preto
+		sw $t1, 0($s0) 				# posição antiga do personagem
 		# atualiza posição de memoria do $v0
 		add $s0, $s0, 4
 	j fim_movimentar_syscall
@@ -144,13 +235,7 @@ movimentar_syscall:
 	fim_movimentar_syscall:
 jr $ra
 
-# recebe em $a0 o tempo (em mili segundos) que o programa dará o sleep
-sleep:
-	li $v0, 32
-	syscall
-jr $ra
-
-# pinta no display o labirinto e os contadores do jogo
+# pinta no display o labirinto, a pontuação e os personagens
 # salva nos registradores $s0 a $s4 o address dos personagens
 paint_stage_1:
 	
@@ -507,12 +592,12 @@ paint_stage_1:
 	li $t1, 8
 	lw $a3, color_white
 	
-	li $a1, 528
+	li $a1, 520
 	li $a2, 568
 	jal paint_line
 	
 	li $a1, 576
-	li $a2, 616
+	li $a2, 624
 	jal paint_line
 
 	li $a1, 2828
@@ -520,11 +605,18 @@ paint_stage_1:
 	jal paint_line
 	
 	li $a1, 1292
+	li $a2, 1332
+	jal paint_line
+	
+	li $a1, 1348
 	li $a2, 1388
 	jal paint_line
 	
-	
 	li $a1, 4876
+	li $a2, 4908
+	jal paint_line
+	
+	li $a1, 4940
 	li $a2, 4972
 	jal paint_line
 	
@@ -532,12 +624,12 @@ paint_stage_1:
 	li $a2, 6508
 	jal paint_line
 	
-	li $a1, 7184
+	li $a1, 7176
 	li $a2, 7224
 	jal paint_line
 	
 	li $a1, 7232
-	li $a2, 7272
+	li $a2, 7280
 	jal paint_line
 	
 	li $a1, 2064
@@ -624,22 +716,526 @@ paint_stage_1:
 	
 	##### personagens #####
 	lw $a3, color_yellow
-	sw $a3, 2876($a0)
+	sw $a3, 1340($a0)
 	lw $a3, color_red
-	sw $a3, 520($a0) 
+	sw $a3, 4916($a0) 
 	lw $a3, color_orange
-	sw $a3, 624($a0)
+	sw $a3, 4920($a0)
 	lw $a3, color_ciano
-	sw $a3, 7176($a0)
+	sw $a3, 4928($a0)
 	lw $a3, color_pink
-	sw $a3, 7280($a0)
+	sw $a3, 4932($a0)
 	
 	###### endereço dos personagens no bitmap ######
-	addi $s0, $a0, 2876 # pac man
-	addi $s1, $a0, 520  # red ghost
-	addi $s2, $a0, 624  # orange ghost
-	addi $s3, $a0, 7176 # ciano ghost
-	addi $s4, $a0, 7280 # pink ghost
+	addi $s0, $a0, 1340 # pac man
+	addi $s1, $a0, 4916  # red ghost
+	addi $s2, $a0, 4920  # orange ghost
+	addi $s3, $a0, 4928 # ciano ghost
+	addi $s4, $a0, 4932 # pink ghost
+jr $ra
+
+# pinta no display o labirinto, a pontuação e os personagens
+# salva nos registradores $s0 a $s4 o address dos personagens
+paint_stage_2:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+	# pintando labirinto
+	li $t1, 4
+	lw $a3, color_blue
+	
+	li $a1, 260
+	li $a2, 372
+	jal paint_line
+	
+	li $a1, 800
+	li $a2, 824
+	jal paint_line
+	
+	li $a1, 832
+	li $a2, 856
+	jal paint_line
+	
+	li $a1, 1056
+	li $a2, 1080
+	jal paint_line
+	
+	li $a1, 1088
+	li $a2, 1112
+	jal paint_line
+	
+	li $a1, 1312
+	li $a2, 1336
+	jal paint_line
+	
+	li $a1, 1344
+	li $a2, 1368
+	jal paint_line
+	
+	li $a1, 1568
+	li $a2, 1592
+	jal paint_line
+	
+	li $a1, 1600
+	li $a2, 1624
+	jal paint_line
+	
+	li $a1, 1824
+	li $a2, 1848
+	jal paint_line
+	
+	li $a1, 1856
+	li $a2, 1880
+	jal paint_line
+	
+	li $a1, 2348
+	li $a2, 2380
+	jal paint_line
+	
+	li $a1, 2604
+	li $a2, 2636
+	jal paint_line
+	
+	li $a1, 2316
+	li $a2, 2328
+	jal paint_line
+	
+	li $a1, 2572
+	li $a2, 2584
+	jal paint_line
+	
+	li $a1, 2828
+	li $a2, 2840
+	jal paint_line
+	
+	li $a1, 3084
+	li $a2, 3096
+	jal paint_line
+	
+	li $a1, 3104
+	li $a2, 3120
+	jal paint_line
+	
+	li $a1, 3360
+	li $a2, 3376
+	jal paint_line
+	
+	li $a1, 3616
+	li $a2, 3632
+	jal paint_line
+	
+	li $a1, 2400
+	li $a2, 2412
+	jal paint_line
+	
+	li $a1, 2656
+	li $a2, 2668
+	jal paint_line
+	
+	li $a1, 2912
+	li $a2, 2924
+	jal paint_line
+	
+	li $a1, 3168
+	li $a2, 3180
+	jal paint_line
+	
+	li $a1, 3144
+	li $a2, 3160
+	jal paint_line
+	
+	li $a1, 3400
+	li $a2, 3416
+	jal paint_line
+	
+	li $a1, 3656
+	li $a2, 3672
+	jal paint_line
+	
+	li $a1, 3588
+	li $a2, 3608
+	jal paint_line
+	
+	li $a1, 4100
+	li $a2, 4120
+	jal paint_line
+	
+	li $a1, 3680
+	li $a2, 3700
+	jal paint_line
+	
+	li $a1, 4192
+	li $a2, 4212
+	jal paint_line
+	
+	li $a1, 4128
+	li $a2, 4136
+	jal paint_line
+	
+	li $a1, 4384
+	li $a2, 4392
+	jal paint_line
+	
+	li $a1, 4620
+	li $a2, 4648
+	jal paint_line
+	
+	li $a1, 4876
+	li $a2, 4904
+	jal paint_line
+	
+	li $a1, 5132
+	li $a2, 5160
+	jal paint_line
+	
+	li $a1, 4144
+	li $a2, 4168
+	jal paint_line
+	
+	li $a1, 4400
+	li $a2, 4424
+	jal paint_line
+	
+	li $a1, 4656
+	li $a2, 4680
+	jal paint_line
+	
+	li $a1, 4912
+	li $a2, 4936
+	jal paint_line
+	
+	li $a1, 5168
+	li $a2, 5192
+	jal paint_line
+	
+	li $a1, 4176
+	li $a2, 4184
+	jal paint_line
+	
+	li $a1, 4432
+	li $a2, 4440
+	jal paint_line
+	
+	li $a1, 4688
+	li $a2, 4716
+	jal paint_line
+	
+	li $a1, 4944
+	li $a2, 4972
+	jal paint_line
+	
+	li $a1, 5200
+	li $a2, 5228
+	jal paint_line
+	
+	li $a1, 7172
+	li $a2, 7284
+	jal paint_line
+	
+	li $t1, 20
+	
+	li $a1, 5656
+	li $a2, 5716
+	jal paint_line
+	
+	li $a1, 5660
+	li $a2, 5720
+	jal paint_line
+	
+	li $a1, 5664
+	li $a2, 5724
+	jal paint_line
+	
+	li $a1, 5668
+	li $a2, 5728
+	jal paint_line
+	
+	li $a1, 5912
+	li $a2, 5972
+	jal paint_line
+	
+	li $a1, 5916
+	li $a2, 5976
+	jal paint_line
+	
+	li $a1, 5920
+	li $a2, 5980
+	jal paint_line
+	
+	li $a1, 5924
+	li $a2, 5984
+	jal paint_line
+	
+	li $a1, 6424
+	li $a2, 6484
+	jal paint_line
+	
+	li $a1, 6428
+	li $a2, 6488
+	jal paint_line
+	
+	li $a1, 6432
+	li $a2, 6492
+	jal paint_line
+	
+	li $a1, 6436
+	li $a2, 6496
+	jal paint_line
+	
+	li $a1, 6680
+	li $a2, 6740
+	jal paint_line
+	
+	li $a1, 6684
+	li $a2, 6744
+	jal paint_line
+	
+	li $a1, 6688
+	li $a2, 6748
+	jal paint_line
+	
+	li $a1, 6692
+	li $a2, 6752
+	jal paint_line
+	
+	li $t1, 256
+	
+	li $a1, 516
+	li $a2, 3332
+	jal paint_line
+	
+	li $a1, 4356
+	li $a2, 6916
+	jal paint_line
+	
+	li $a1, 628
+	li $a2, 3444
+	jal paint_line
+	
+	li $a1, 4468
+	li $a2, 7028
+	jal paint_line
+	
+	li $a1, 5644
+	li $a2, 6668
+	jal paint_line
+	
+	li $a1, 5648
+	li $a2, 6672
+	jal paint_line
+	
+	li $a1, 5736
+	li $a2, 6760
+	jal paint_line
+	
+	li $a1, 5740
+	li $a2, 6764
+	jal paint_line
+	
+	li $a1, 780
+	li $a2, 1804
+	jal paint_line
+	
+	li $a1, 784
+	li $a2, 1808
+	jal paint_line
+	
+	li $a1, 788
+	li $a2, 1812
+	jal paint_line
+	
+	li $a1, 792
+	li $a2, 1816
+	jal paint_line
+	
+	li $a1, 2336
+	li $a2, 2848
+	jal paint_line
+	
+	li $a1, 2340
+	li $a2, 2852
+	jal paint_line
+	
+	li $a1, 864
+	li $a2, 1888
+	jal paint_line
+	
+	li $a1, 868
+	li $a2, 1892
+	jal paint_line
+	
+	li $a1, 872
+	li $a2, 1896
+	jal paint_line
+	
+	li $a1, 876
+	li $a2, 1900
+	jal paint_line
+	
+	li $a1, 2388
+	li $a2, 2900
+	jal paint_line
+	
+	li $a1, 2392
+	li $a2, 2904
+	jal paint_line
+	
+	li $a1, 2872
+	li $a2, 3640
+	jal paint_line
+	
+	li $a1, 2876
+	li $a2, 3644
+	jal paint_line
+	
+	li $a1, 2880
+	li $a2, 3648
+	jal paint_line
+	
+	# pintando pontuação
+	lw $a3, color_white
+	li $t1, 8
+		
+	li $a1, 520
+	li $a2, 624
+	jal paint_line
+	
+	li $a1, 6920
+	li $a2, 7024
+	jal paint_line
+	
+	li $a1, 4364
+	li $a2, 4380
+	jal paint_line
+	
+	li $a1, 5384
+	li $a2, 5416
+	jal paint_line
+	
+	li $a1, 6164
+	li $a2, 6244
+	jal paint_line
+	
+	li $a1, 5456
+	li $a2, 5488
+	jal paint_line
+	
+	li $a1, 3868
+	li $a2, 3932
+	jal paint_line
+	
+	li $a1, 3340
+	li $a2, 3356
+	jal paint_line
+	
+	li $a1, 3420
+	li $a2, 3436
+	jal paint_line
+	
+	li $a1, 2056
+	li $a2, 2160
+	jal paint_line
+	
+	li $a1, 4444
+	li $a2, 4460
+	jal paint_line
+	
+	li $a1, 2860
+	li $a2, 2868
+	jal paint_line
+	
+	li $a1, 2884
+	li $a2, 2892
+	jal paint_line
+	
+	li $t1, 512
+	
+	li $a1, 1032
+	li $a2, 3080
+	jal paint_line
+	
+	li $a1, 796
+	li $a2, 4380
+	jal paint_line
+	
+	li $a1, 2868
+	li $a2, 3892
+	jal paint_line
+	
+	li $a1, 2884
+	li $a2, 3908
+	jal paint_line
+	
+	li $a1, 828
+	li $a2, 1852
+	jal paint_line
+	
+	li $a1, 860
+	li $a2, 4444
+	jal paint_line
+	
+	li $a1, 1136
+	li $a2, 3184
+	jal paint_line
+	
+	li $a1, 4872
+	li $a2, 6920
+	jal paint_line
+	
+	li $a1, 5652
+	li $a2, 6676
+	jal paint_line
+	
+	li $a1, 5928
+	li $a2, 6440
+	jal paint_line
+	
+	li $a1, 5692
+	li $a2, 6716
+	jal paint_line
+	
+	li $a1, 5968
+	li $a2, 6480
+	jal paint_line
+	
+	li $a1, 5732
+	li $a2, 6756
+	jal paint_line
+	
+	li $a1, 4976
+	li $a2, 7024
+	jal paint_line
+	
+	li $a1, 4428
+	li $a2, 4940
+	jal paint_line
+	
+	li $a1, 4396
+	li $a2, 4908
+	jal paint_line
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	##### personagens #####
+	lw $a3, color_yellow
+	sw $a3, 3900($a0)
+	lw $a3, color_red
+	sw $a3, 5428($a0) 
+	lw $a3, color_orange
+	sw $a3, 5432($a0)
+	lw $a3, color_ciano
+	sw $a3, 5440($a0)
+	lw $a3, color_pink
+	sw $a3, 5444($a0)
+	
+	###### endereço dos personagens no bitmap ######
+	addi $s0, $a0, 3900 # pac man
+	addi $s1, $a0, 5428  # red ghost
+	addi $s2, $a0, 5432  # orange ghost
+	addi $s3, $a0, 5440 # ciano ghost
+	addi $s4, $a0, 5444 # pink ghost
+	
 jr $ra
 
 paint_pts:
@@ -839,8 +1435,19 @@ paint_lives:
 	
 	li $t0, 0 # contador do laço
 	li $t1, 0 # contador do endereço do pac man (conta de 32 a 32)
+	
+	# contador auxiliar da pintura de vidas
+	li $t4, 0 # conta a partir de qual vida as demais seão pintadas de preto
+	
 	paint_lives_loop:
-	beq $t0, $s6, end_paint_lives_loop
+	beq $t0, 3, end_paint_lives_loop
+		
+		beq $t4, $s6, pintar_vidas_de_preto
+		j nao_pintar_vidas_de_preto
+		pintar_vidas_de_preto:
+			lw $a3, color_black
+		nao_pintar_vidas_de_preto:
+		
 		addi $t2, $a0, 6048
 		add $t2, $t2, $t1
 		sw $a3, 0($t2)
@@ -944,127 +1551,11 @@ paint_lives:
 		addi $t2, $a0, 7592
 		add $t2, $t2, $t1
 		sw $a3, 0($t2)
-	addi $t1, $t1, 32
-	addi $t0, $t0, 1
+	addi $t1, $t1, 32 # contador do enrereço
+	addi $t0, $t0, 1 # contador do laço 
+	addi $t4, $t4, 1 # contador da pintura
 	j paint_lives_loop
 	end_paint_lives_loop:
-	
-	li $t0, 3 # valor auxiliar para subtracao
-	li $t1, 0 # contador do address
-	li $t4, 0 # contador do laço
-	sub $t3, $t0, $s6  
-	lw $a3, color_black
-	
-	# pinta de preto as vidas perdidas
-	paint_black_lives_loop:
-	beq $t4, $t3, end_paint_black_lives_loop
-		addi $t2, $a0, 6048
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6052
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6056
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6300
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6304
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6308
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6312
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6316
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6552
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6556
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6560
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6564
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6808
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 6812
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7064
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7068
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7072
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7076
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7324
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7328
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7332
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7336
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7340
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7584
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7588
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-		
-		addi $t2, $a0, 7592
-		add $t2, $t2, $t1
-		sw $a3, 0($t2)
-	addi $t1, $t1, 32	
-	addi $t4, $t4, 1
-	j paint_black_lives_loop
-	end_paint_black_lives_loop:
 		
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
@@ -1806,6 +2297,7 @@ contador_display:
 		addi $t1, $a0, 4304
 		add $t1, $t1, $t0
 		sw $t2, 0($t1)
+		
 	j fim_contador_display
 	nao_pintar_9:
 	
