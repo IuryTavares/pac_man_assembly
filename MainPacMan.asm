@@ -12,7 +12,6 @@
 .data
 display_address: 	.word 0x10010000
 display_size:		.word 2048
-keyboard_address:	.word 0xFFFF0004
 color_blue:		.word 0x001818FF
 color_yellow:		.word 0x00FFFE1D
 color_red: 		.word 0x00DF0902
@@ -59,35 +58,178 @@ main:
 	jal paint_pts
 	jal paint_lives	
 	jal contador_da_pontuacao
-	
+	jal posicionar_personagens
+	j a
 	# pintando o stage 1
-	#jal paint_stage_1
-	
+	jal paint_stage_1
+
 	game_loop_stage_1:
-	beq $zero, $s6, end_game_loop_stage_1 
+	beq $zero, $s6, game_over # checa se a quantidade de vidas é diferente de zero
 		speed(200) # velocidade do pac man
 		jal mover_pac_man
+		jal checar_colisao_fantasma
 		jal contador_da_pontuacao
-	#j game_loop_stage_1
+		
+		beq $s7, 10, end_game_loop_stage_1 # total de pontos stage 1 = 144
+		
+	j game_loop_stage_1
 	end_game_loop_stage_1:
+	
+	jal resetar_display
+	a:
+	# configurações do stage 2
+	li $s5, 2            	# indicando que estamos no stage 2
 	
 	# pintando o stage 2
 	jal paint_stage_2
+	jal posicionar_personagens
+	
+	li $v0, 1
+	li $a0, 1
+	syscall
 	
 	game_loop_stage_2:
-	beq $zero, $s6, end_game_loop_stage_2 
-		#speed(200) # velocidade do pac man
-		#jal mover_pac_man
-		#jal contador_da_pontuacao
-	#j game_loop_stage_2
+	beq $zero, $s6, game_over 
+		speed(200) # velocidade do pac man
+		jal mover_pac_man
+		jal checar_colisao_fantasma
+		jal contador_da_pontuacao
+		
+	j game_loop_stage_2
 	end_game_loop_stage_2:
 	
+	you_win:
+	jal resetar_display
+	jal paint_you_win
+	j end_of_program
+	
+	game_over:
+	jal resetar_display
+	jal paint_game_over
+	end_of_program:
 li $v0, 10 # fim do programa
 syscall
 
+
+
 # checa se o pac man tocou em algum fantasma
-checar_colisão_fantasma:
+# se ocorreu uma colisao a função pinta a nova quantidade de vidas
+checar_colisao_fantasma:
+	la $a0, display_address
+	add $t0, $a0, $s0
+	# checando colisão - fantasma vermelho
+	lw $t1, color_red
 	
+	sub $t2, $t0, 256
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão por cima
+	sub $t2, $t0, 4
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão pela esquerda
+	addi $t2, $t0, 256
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão por baixo
+	addi $t2, $t0, 4
+	beq $t2, $t0, colidiu_com_um_fantasma # colisão pela direita
+	
+	# checando colisão - fantasma laranja
+	lw $t1, color_orange
+	
+	sub $t2, $t0, 256
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão por cima
+	sub $t2, $t0, 4
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão pela esquerda
+	addi $t2, $t0, 256
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão por baixo
+	addi $t2, $t0, 4
+	beq $t2, $t0, colidiu_com_um_fantasma # colisão pela direita
+	
+	# checando colisão - fantasma azul
+	lw $t1, color_ciano
+	
+	sub $t2, $t0, 256
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão por cima
+	sub $t2, $t0, 4
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão pela esquerda
+	addi $t2, $t0, 256
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão por baixo
+	addi $t2, $t0, 4
+	beq $t2, $t0, colidiu_com_um_fantasma # colisão pela direita
+	
+	# checando colisão - fantasma rosa
+	lw $t1, color_pink
+	
+	sub $t2, $t0, 256
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão por cima
+	sub $t2, $t0, 4
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão pela esquerda
+	addi $t2, $t0, 256
+	beq $t2, $t1, colidiu_com_um_fantasma # colisão por baixo
+	addi $t2, $t0, 4
+	beq $t2, $t0, colidiu_com_um_fantasma # colisão pela direita
+	
+	j nao_colidiu_com_um_fantasma
+	
+	colidiu_com_um_fantasma:
+	sub $s6, $s6, 1		# atualiza a quantidade total de vidas
+	
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+		jal paint_lives # pinta a quantidade atual de vidas
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	nao_colidiu_com_um_fantasma:
+jr $ra
+
+# posiciona os personagens de acordo com o stage
+# usado no inicio do jogo ou quando uma vida é perdida
+# o stage é salvo em $s5
+posicionar_personagens:
+	la $a0, display_address
+	beq $s5, 1, posicionar_stage_1
+	j nao_posicionar_stage_1
+	posicionar_stage_1:
+		##### pintando personagens #####
+		lw $a3, color_yellow
+		sw $a3, 1340($a0)
+		lw $a3, color_red
+		sw $a3, 4916($a0) 
+		lw $a3, color_orange
+		sw $a3, 4920($a0)
+		lw $a3, color_ciano
+		sw $a3, 4928($a0)
+		lw $a3, color_pink
+		sw $a3, 4932($a0)
+	
+		###### endereço dos personagens no bitmap ######
+		addi $s0, $a0, 1340 # pac man
+		addi $s1, $a0, 4916  # red ghost
+		addi $s2, $a0, 4920  # orange ghost
+		addi $s3, $a0, 4928 # ciano ghost
+		addi $s4, $a0, 4932 # pink ghost
+	j nao_posicionar_stage_2
+	nao_posicionar_stage_1:
+		
+	beq $s5, 2, posicionar_stage_2
+	j nao_posicionar_stage_2
+	posicionar_stage_2:
+		##### pintando personagens #####
+		lw $a3, color_yellow
+		sw $a3, 3900($a0)
+		lw $a3, color_red
+		sw $a3, 5428($a0) 
+		lw $a3, color_orange
+		sw $a3, 5432($a0)
+		lw $a3, color_ciano
+		sw $a3, 5440($a0)
+		lw $a3, color_pink
+		sw $a3, 5444($a0)
+	
+		###### endereço dos personagens no bitmap ######
+		addi $s0, $a0, 3900 # pac man
+		addi $s1, $a0, 5428  # red ghost
+		addi $s2, $a0, 5432  # orange ghost
+		addi $s3, $a0, 5440 # ciano ghost
+		addi $s4, $a0, 5444 # pink ghost
+	nao_posicionar_stage_2:
 jr $ra
 
 # pinta no display a pontuação atual
@@ -135,7 +277,7 @@ mover_pac_man:
 	#li $v0, 12 		# movimento com syscall
 	#syscall
 	
-	lw $v0, 0xffff0004	# movimento com keyboard
+	lw $v0, 0xffff0004# movimento com keyboard
 	
 	beq $v0, 119, mover_w
 	j nao_mover_w
@@ -235,8 +377,7 @@ mover_pac_man:
 	fim_movimentar_syscall:
 jr $ra
 
-# pinta no display o labirinto, a pontuação e os personagens
-# salva nos registradores $s0 a $s4 o address dos personagens
+# pinta no display o labirinto e  a pontuação
 paint_stage_1:
 	
 	addi $sp, $sp, -4
@@ -713,29 +854,9 @@ paint_stage_1:
 	
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
-	
-	##### personagens #####
-	lw $a3, color_yellow
-	sw $a3, 1340($a0)
-	lw $a3, color_red
-	sw $a3, 4916($a0) 
-	lw $a3, color_orange
-	sw $a3, 4920($a0)
-	lw $a3, color_ciano
-	sw $a3, 4928($a0)
-	lw $a3, color_pink
-	sw $a3, 4932($a0)
-	
-	###### endereço dos personagens no bitmap ######
-	addi $s0, $a0, 1340 # pac man
-	addi $s1, $a0, 4916  # red ghost
-	addi $s2, $a0, 4920  # orange ghost
-	addi $s3, $a0, 4928 # ciano ghost
-	addi $s4, $a0, 4932 # pink ghost
 jr $ra
 
-# pinta no display o labirinto, a pontuação e os personagens
-# salva nos registradores $s0 a $s4 o address dos personagens
+# pinta no display o labirinto e a pontuação
 paint_stage_2:
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
@@ -1216,26 +1337,6 @@ paint_stage_2:
 	
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
-	
-	##### personagens #####
-	lw $a3, color_yellow
-	sw $a3, 3900($a0)
-	lw $a3, color_red
-	sw $a3, 5428($a0) 
-	lw $a3, color_orange
-	sw $a3, 5432($a0)
-	lw $a3, color_ciano
-	sw $a3, 5440($a0)
-	lw $a3, color_pink
-	sw $a3, 5444($a0)
-	
-	###### endereço dos personagens no bitmap ######
-	addi $s0, $a0, 3900 # pac man
-	addi $s1, $a0, 5428  # red ghost
-	addi $s2, $a0, 5432  # orange ghost
-	addi $s3, $a0, 5440 # ciano ghost
-	addi $s4, $a0, 5444 # pink ghost
-	
 jr $ra
 
 paint_pts:
@@ -2302,4 +2403,112 @@ contador_display:
 	nao_pintar_9:
 	
 	fim_contador_display:
+jr $ra
+
+paint_game_over:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+	lw $a3, color_red
+	
+	
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+
+jr $ra
+
+paint_you_win:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
+	lw $a3, color_red
+	li $t1, 256
+	
+	li $a1, 2088
+	li $a2, 2600
+	jal paint_line
+	
+	li $a1, 1844
+	li $a2, 2356
+	jal paint_line
+	
+	li $a1, 1856
+	li $a2, 2368
+	jal paint_line
+	
+	li $a1, 1608
+	li $a2, 2376
+	jal paint_line
+	
+	li $a1, 1620
+	li $a2, 2388
+	jal paint_line
+	
+	li $a1, 3360
+	li $a2, 4128
+	jal paint_line
+	
+	li $a1, 3368
+	li $a2, 4136
+	jal paint_line
+	
+	li $a1, 3376
+	li $a2, 4144
+	jal paint_line
+	
+	li $a1, 3896
+	li $a2, 4408
+	jal paint_line
+	
+	li $a1, 3392
+	li $a2, 4416
+	jal paint_line
+	
+	li $a1, 3408
+	li $a2, 4432
+	jal paint_line
+	
+	li $a1, 3416
+	li $a2, 3928
+	jal paint_line
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	sw $a3 1572($a0)
+	sw $a3 1580($a0)
+	sw $a3 1828($a0)
+	sw $a3 1836($a0)
+	sw $a3 1592($a0)
+	sw $a3 1596($a0)
+	sw $a3 2616($a0)
+	sw $a3 2620($a0)
+	sw $a3 2636($a0)
+	sw $a3 2640($a0)
+	sw $a3 4388($a0)
+	sw $a3 4396($a0)
+	sw $a3 3384($a0)
+	sw $a3 3652($a0)
+	sw $a3 3912($a0)
+	sw $a3 4172($a0)
+	sw $a3 4440($a0)
+jr $ra
+
+resetar_display:
+	la $a0, display_address
+	li $t0, 0
+	lw $t1, display_size
+	lw $t3, color_black
+	resetar_display_loop:
+	beq $t0, $t1, end_resetar_display_loop
+	sll $t2, $t0, 2
+	add $t2, $t2, $a0
+	sw $t3, 0($t2)
+	addi $t0, $t0, 1
+	j resetar_display_loop
+	end_resetar_display_loop:
+	lw $t3, color_white
+	sw $t3, 8188($a0)
 jr $ra
