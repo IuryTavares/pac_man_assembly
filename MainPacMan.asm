@@ -31,18 +31,29 @@ color_white:		.word 0x00FFFFFF
 #	mover p/ cima:     address-256
 #	mover p/ baixo:	   address+256
 #	$s0 - posição do pac man	
-#	$s1 - posição do fantasma azul
+#	$s1 - posição do fantasma vermelho
 #	$s2 - posição do fantasma laranja
-#	$s3 - posição do fantasma vermelho
+#	$s3 - posição do fantasma ciano
 #	$s4 - posição do fantasma rosa
 #	$s5 - armazena o stage atual (1 ou 2)
 #	$s6 - armazena a quantidade de vidas (3 a 0)
 #	$s7 - salva a pontuação atual do jogo
 
-.macro speed(%speed_in_miliseconds)
+.macro sleep(%speed_in_miliseconds)
 	li $a0, %speed_in_miliseconds
 	li $v0, 32
 	syscall
+.end_macro 
+
+.macro press_any_key()
+	beqz $s6, end_loop_wait # checa se a qtd de vidas é zero
+	li $t0, -1		# reseta o contador do reciever
+	sw $t0, 0xffff0004 	# reseta o conteudo do reciever do keyboard
+	loop_wait:
+	bgez $t0, end_loop_wait
+	lw $t0, 0xffff0004
+	j loop_wait
+	end_loop_wait:
 .end_macro 
 
 .text
@@ -58,40 +69,44 @@ main:
 	jal paint_pts
 	jal paint_lives	
 	jal contador_da_pontuacao
-	jal posicionar_personagens
 	
 	# pintando o stage 1
 	jal paint_stage_1
-
+	
+	wait_1: # espera uma tecla ser pressionada para iniciar o movimento do pac man
+	jal posicionar_personagens
+	press_any_key()
+	
 	game_loop_stage_1:
 	beq $zero, $s6, game_over # checa se a quantidade de vidas é diferente de zero
-		jal checar_colisao_fantasma
-		jal contador_da_pontuacao
-		speed(200) # velocidade do pac man
+		sleep(200) # velocidade do pac man
 		jal mover_pac_man
-		
-		beq $s7, 5, end_game_loop_stage_1 # 144 pontos stage 1
+		jal contador_da_pontuacao
+		jal checar_colisao_fantasma
+		beq $v0, 1, wait_1
+		beq $s7, 144, end_game_loop_stage_1 	# 144 pontos stage 1
 	j game_loop_stage_1
 	end_game_loop_stage_1:
 	
 	# pintando a area do labirinto 1 de preto para pintar o labirinto 2
 	jal resetar_labirinto
 	
-	# configurações do stage 2
+	# configurando e pintando stage 2
 	li $s5, 2            	# indicando que estamos no stage 2
 	jal paint_stage_2
 	jal paint_stage_text
-	
-	# pintando o stage 2
-	
-	jal posicionar_personagens
 
+	wait_2: # espera uma tecla ser pressionada para iniciar o movimento do pac man
+	jal posicionar_personagens
+	press_any_key()
+	
 	game_loop_stage_2:
 	beq $zero, $s6, game_over 
-		speed(200) # velocidade do pac man
+		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal mover_pac_man
-		jal checar_colisao_fantasma
 		jal contador_da_pontuacao
+		jal checar_colisao_fantasma
+		beq $v0, 1, wait_2
 		beq $s7, 274, end_game_loop_stage_1 # 130 pontos stage 2, 274 no total.
 	j game_loop_stage_2
 	end_game_loop_stage_2:
@@ -110,62 +125,66 @@ syscall
 
 # checa se o pac man tocou em algum fantasma
 # se ocorreu uma colisao a função pinta a nova quantidade de vidas
+# $v0 - retorna 1 se houver colisão, 0 se não houver
 checar_colisao_fantasma:
-	la $a0, display_address
-	add $t0, $a0, $s0
-	# checando colisão - fantasma vermelho
-	lw $t1, color_red
-	
-	sub $t2, $t0, 256
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão por cima
-	sub $t2, $t0, 4
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão pela esquerda
-	addi $t2, $t0, 256
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão por baixo
-	addi $t2, $t0, 4
-	beq $t2, $t0, colidiu_com_um_fantasma # colisão pela direita
-	
-	# checando colisão - fantasma laranja
-	lw $t1, color_orange
-	
-	sub $t2, $t0, 256
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão por cima
-	sub $t2, $t0, 4
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão pela esquerda
-	addi $t2, $t0, 256
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão por baixo
-	addi $t2, $t0, 4
-	beq $t2, $t0, colidiu_com_um_fantasma # colisão pela direita
+	move $t0, $s0 	# move a posicao atual do pac man para $t0
+	li $v0, 0	# indica no retorno da função que não houve colisão
 	
 	# checando colisão - fantasma azul
-	lw $t1, color_ciano
-	
 	sub $t2, $t0, 256
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão por cima
+	beq $t2, $s1, colidiu_com_um_fantasma # colisão por cima
 	sub $t2, $t0, 4
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão pela esquerda
+	beq $t2, $s1, colidiu_com_um_fantasma # colisão pela esquerda
 	addi $t2, $t0, 256
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão por baixo
+	beq $t2, $s1, colidiu_com_um_fantasma # colisão por baixo
 	addi $t2, $t0, 4
-	beq $t2, $t0, colidiu_com_um_fantasma # colisão pela direita
+	beq $t2, $s1, colidiu_com_um_fantasma # colisão pela direita
+	
+	# checando colisão - fantasma laranja
+	sub $t2, $t0, 256
+	beq $t2, $s2, colidiu_com_um_fantasma # colisão por cima
+	sub $t2, $t0, 4
+	beq $t2, $s2, colidiu_com_um_fantasma # colisão pela esquerda
+	addi $t2, $t0, 256
+	beq $t2, $s2, colidiu_com_um_fantasma # colisão por baixo
+	addi $t2, $t0, 4
+	beq $t2, $s2, colidiu_com_um_fantasma # colisão pela direita
+	
+	# checando colisão - fantasma azul
+	sub $t2, $t0, 256
+	beq $t2, $s3, colidiu_com_um_fantasma # colisão por cima
+	sub $t2, $t0, 4
+	beq $t2, $s3, colidiu_com_um_fantasma # colisão pela esquerda
+	addi $t2, $t0, 256
+	beq $t2, $s3, colidiu_com_um_fantasma # colisão por baixo
+	addi $t2, $t0, 4
+	beq $t2, $s3, colidiu_com_um_fantasma # colisão pela direita
 	
 	# checando colisão - fantasma rosa
-	lw $t1, color_pink
-	
 	sub $t2, $t0, 256
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão por cima
+	beq $t2, $s4, colidiu_com_um_fantasma # colisão por cima
 	sub $t2, $t0, 4
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão pela esquerda
+	beq $t2, $s4, colidiu_com_um_fantasma # colisão pela esquerda
 	addi $t2, $t0, 256
-	beq $t2, $t1, colidiu_com_um_fantasma # colisão por baixo
+	beq $t2, $s4, colidiu_com_um_fantasma # colisão por baixo
 	addi $t2, $t0, 4
-	beq $t2, $t0, colidiu_com_um_fantasma # colisão pela direita
+	beq $t2, $s4, colidiu_com_um_fantasma # colisão pela direita
 	
 	j nao_colidiu_com_um_fantasma
 	
 	colidiu_com_um_fantasma:
+	li $v0, 1 		# indica no retorno da função que houve colisão
 	sub $s6, $s6, 1		# atualiza a quantidade total de vidas
 	
+	# PINTA DE PRETO A POSUÇÃO ATUAL DOS PERSONAGENS PARA SEREM REPOSICIONADOS
+	lw $a3, color_black
+	sw $a3, 0($s0)
+	sw $a3, 0($s1)
+	sw $a3, 0($s2)
+	sw $a3, 0($s3)
+	sw $a3, 0($s4)
+	
+	# ATUALIZA A QUANTIDADE ATUAL DE VIDAS
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
 		jal paint_lives # pinta a quantidade atual de vidas
@@ -183,7 +202,7 @@ posicionar_personagens:
 	beq $s5, 1, posicionar_stage_1
 	j nao_posicionar_stage_1
 	posicionar_stage_1:
-		##### pintando personagens #####
+		##### pintando personagens nas devidas posições #####
 		lw $a3, color_yellow
 		sw $a3, 1340($a0)
 		lw $a3, color_red
@@ -207,7 +226,7 @@ posicionar_personagens:
 	beq $s5, 2, posicionar_stage_2
 	j nao_posicionar_stage_2
 	posicionar_stage_2:
-		##### pintando personagens #####
+		##### pintando personagens nas devidas posições #####
 		lw $a3, color_yellow
 		sw $a3, 3900($a0)
 		lw $a3, color_red
@@ -271,7 +290,9 @@ jr $ra
 mover_pac_man:
 	la $a0, display_address # se nao pegar, testar com load word
 	lw $v0, 0xffff0004	# movimento com keyboard
-
+	#li $v0, 12
+	#syscall
+	
 	beq $v0, 119, mover_w
 	j nao_mover_w
 	mover_w:
@@ -2429,7 +2450,268 @@ paint_game_over:
 	
 	lw $a3, color_red
 	
+	## G ##
+	li $t1, 256
 	
+	li $a1, 2068
+	li $a2, 3860
+	jal paint_line
+	
+	li $a1, 2320
+	li $a2, 3600
+	jal paint_line
+	
+	li $a1, 2852
+	li $a2, 3876
+	jal paint_line
+	
+	li $a1, 2856
+	li $a2, 3624
+	jal paint_line
+	
+	li $t1, 4
+	
+	li $a1, 2072
+	li $a2, 2084
+	jal paint_line
+	
+	li $a1, 2328
+	li $a2, 2340
+	jal paint_line
+	
+	li $a1, 3608
+	li $a2, 3616
+	jal paint_line
+	
+	li $a1, 3864
+	li $a2, 3872
+	jal paint_line
+	
+	sw $a3, 2848($a0)
+	sw $a3, 3104($a0)
+	
+	## A ##
+	
+	li $t1, 256
+	
+	li $a1, 2352
+	li $a2, 3888
+	jal paint_line
+	
+	li $a1, 2100
+	li $a2, 3892
+	jal paint_line
+	
+	li $a1, 2108
+	li $a2, 3900
+	jal paint_line
+	
+	li $a1, 2368
+	li $a2, 3904
+	jal paint_line
+	
+	sw $a3, 2104($a0)
+	sw $a3, 2360($a0)
+	sw $a3, 3128($a0)
+	sw $a3, 3384($a0)
+	
+	## M ##
+	
+	li $a1, 2120
+	li $a2, 3912
+	jal paint_line
+	
+	li $a1, 2124
+	li $a2, 3916
+	jal paint_line
+	
+	li $a1, 2384
+	li $a2, 2896
+	jal paint_line
+	
+	li $a1, 2644
+	li $a2, 3156
+	jal paint_line
+	
+	li $a1, 2904
+	li $a2, 3416
+	jal paint_line
+	
+	li $a1, 2652
+	li $a2, 3164
+	jal paint_line
+	
+	li $a1, 2400
+	li $a2, 2912
+	jal paint_line
+	
+	li $a1, 2148
+	li $a2, 3940
+	jal paint_line
+	
+	li $a1, 2152
+	li $a2, 3944
+	jal paint_line
+	
+	## E ##
+	li $a1, 2160
+	li $a2, 3952
+	jal paint_line
+	
+	li $a1, 2164
+	li $a2, 3956
+	jal paint_line
+	
+	li $t1, 4
+	
+	li $a1, 2168
+	li $a2, 2176
+	jal paint_line
+	
+	li $a1, 2424
+	li $a2, 2432
+	jal paint_line
+	
+	li $a1, 2936
+	li $a2, 2944
+	jal paint_line
+	
+	li $a1, 3192
+	li $a2, 3200
+	jal paint_line
+	
+	li $a1, 3704
+	li $a2, 3712
+	jal paint_line
+	
+	li $a1, 3960
+	li $a2, 3968
+	jal paint_line
+	
+	## O ##
+	li $t1, 256
+	
+	li $a1, 4628
+	li $a2, 5908
+	jal paint_line
+	
+	li $a1, 4376
+	li $a2, 6168
+	jal paint_line
+	
+	li $a1, 4388
+	li $a2, 6180
+	jal paint_line
+	
+	li $a1, 4648
+	li $a2, 5928
+	jal paint_line
+	
+	sw $a3, 4380($a0)
+	sw $a3, 4384($a0)
+	sw $a3, 4636($a0)
+	sw $a3, 4640($a0)
+	sw $a3, 5916($a0)
+	sw $a3, 5920($a0)
+	sw $a3, 6172($a0)
+	sw $a3, 6176($a0)
+	
+	## V ##
+	li $a1, 4400
+	li $a2, 5680
+	jal paint_line
+	
+	li $a1, 4404
+	li $a2, 5940
+	jal paint_line
+	
+	li $a1, 4420
+	li $a2, 5956
+	jal paint_line
+	
+	li $a1, 4424
+	li $a2, 5704
+	jal paint_line
+	
+	li $a1, 5688
+	li $a2, 6200
+	jal paint_line
+	
+	li $a1, 5696
+	li $a2, 6208
+	jal paint_line
+	
+	sw $a3, 5948($a0)
+	sw $a3, 6204($a0)
+	
+	## E ##
+	
+	li $a1, 4432
+	li $a2, 6224
+	jal paint_line
+	
+	li $a1, 4436
+	li $a2, 6228
+	jal paint_line
+	
+	li $t1, 4
+	
+	li $a1, 4440
+	li $a2, 4448
+	jal paint_line
+	
+	li $a1, 5208
+	li $a2, 5216
+	jal paint_line
+	
+	li $a1, 4696
+	li $a2, 4704
+	jal paint_line
+	
+	li $a1, 5464
+	li $a2, 5472
+	jal paint_line
+	
+	li $a1, 5976
+	li $a2, 5984
+	jal paint_line
+	
+	li $a1, 6232
+	li $a2, 6240
+	jal paint_line
+	
+	## R ##
+	
+	li $t1, 256
+	
+	li $a1, 4456
+	li $a2, 6248
+	jal paint_line
+	
+	li $a1, 4460
+	li $a2, 6252
+	jal paint_line
+	
+	li $a1, 4472
+	li $a2, 6264
+	jal paint_line
+	
+	li $a1, 4732
+	li $a2, 5244
+	jal paint_line
+	
+	li $a1, 5756
+	li $a2, 6268
+	jal paint_line
+	
+	sw $a3, 4464($a0)
+	sw $a3, 4468($a0)
+	sw $a3, 4720($a0)
+	sw $a3, 4724($a0)
+	sw $a3, 5488($a0)
+	sw $a3, 5492($a0)
+	sw $a3, 5744($a0)
+	sw $a3, 5748($a0)
 	
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
@@ -2444,74 +2726,195 @@ paint_you_win:
 	lw $a3, color_red
 	li $t1, 256
 	
-	li $a1, 2088
-	li $a2, 2600
+	### Y #####
+	li $a1, 2076
+	li $a2, 2332
 	jal paint_line
 	
-	li $a1, 1844
-	li $a2, 2356
+	li $a1, 2080
+	li $a2, 2592
 	jal paint_line
 	
-	li $a1, 1856
-	li $a2, 2368
+	li $a1, 2340
+	li $a2, 2852
 	jal paint_line
 	
-	li $a1, 1608
-	li $a2, 2376
+	li $a1, 2600
+	li $a2, 3880
 	jal paint_line
 	
-	li $a1, 1620
-	li $a2, 2388
+	li $a1, 2604
+	li $a2, 3884
 	jal paint_line
 	
-	li $a1, 3360
-	li $a2, 4128
+	li $a1, 2352
+	li $a2, 2864
 	jal paint_line
 	
-	li $a1, 3368
-	li $a2, 4136
+	li $a1, 2100
+	li $a2, 2612
 	jal paint_line
 	
-	li $a1, 3376
-	li $a2, 4144
+	li $a1, 2104
+	li $a2, 2360
 	jal paint_line
 	
-	li $a1, 3896
-	li $a2, 4408
+	#### O ###
+	
+	li $a1, 2368
+	li $a2, 3648
 	jal paint_line
 	
-	li $a1, 3392
-	li $a2, 4416
+	li $a1, 2116
+	li $a2, 3908
 	jal paint_line
 	
-	li $a1, 3408
-	li $a2, 4432
+	li $a1, 2128
+	li $a2, 3920
 	jal paint_line
 	
-	li $a1, 3416
-	li $a2, 3928
+	li $a1, 2388
+	li $a2, 3668
+	jal paint_line
+	
+	sw $a3, 2120($a0)
+	sw $a3, 2124($a0)
+	sw $a3, 2376($a0)
+	sw $a3, 2380($a0)
+	sw $a3, 3656($a0)
+	sw $a3, 3660($a0)
+	sw $a3, 3912($a0)
+	sw $a3, 3916($a0)
+	
+	## U ##
+	li $a1, 2140
+	li $a2, 3676
+	jal paint_line
+	
+	li $a1, 2144
+	li $a2, 3936
+	jal paint_line
+	
+	li $a1, 2160
+	li $a2, 3952
+	jal paint_line
+	
+	li $a1, 2164
+	li $a2, 3700
+	jal paint_line
+	
+	li $a1, 3684
+	li $a2, 3940
+	jal paint_line
+	
+	li $a1, 3688
+	li $a2, 3944
+	jal paint_line
+	
+	li $a1, 3692
+	li $a2, 3948
+	jal paint_line
+	
+	## W ##
+	li $a1, 4376
+	li $a2, 5656
+	jal paint_line
+	
+	li $a1, 4380
+	li $a2, 5916
+	jal paint_line
+	
+	li $a1, 5664
+	li $a2, 6176
+	jal paint_line
+	
+	li $a1, 5672
+	li $a2, 6184
+	jal paint_line
+	
+	li $a1, 4396
+	li $a2, 5932
+	jal paint_line
+	
+	li $a1, 4400
+	li $a2, 5936
+	jal paint_line
+	
+	li $a1, 4416
+	li $a2, 5952
+	jal paint_line
+	
+	li $a1, 4420
+	li $a2, 5700
+	jal paint_line
+	
+	li $a1, 5684
+	li $a2, 6196
+	jal paint_line
+	
+	li $a1, 5692
+	li $a2, 6204
+	jal paint_line
+	
+	sw $a3, 5924($a0)
+	sw $a3, 6180($a0)
+	sw $a3, 5944($a0)
+	sw $a3, 6200($a0)	
+	
+	## I ##
+	li $a1, 5200
+	li $a2, 6224
+	jal paint_line
+	
+	li $a1, 5196
+	li $a2, 6220
+	jal paint_line
+	
+	sw $a3, 4428($a0)
+	sw $a3, 4432($a0)
+	sw $a3, 4684($a0)
+	sw $a3, 4688($a0)
+	
+	## N ##
+	
+	li $a1, 4440
+	li $a2, 6232
+	jal paint_line
+	
+	li $a1, 4444
+	li $a2, 6236
+	jal paint_line
+	
+	li $a1, 4468
+	li $a2, 6260
+	jal paint_line
+	
+	li $a1, 4472
+	li $a2, 6264
+	jal paint_line
+	
+	li $a1, 4704
+	li $a2, 4960
+	jal paint_line
+	
+	li $a1, 4964
+	li $a2, 5220
+	jal paint_line
+	
+	li $a1, 5224
+	li $a2, 5480
+	jal paint_line
+	
+	li $a1, 5484
+	li $a2, 5740
+	jal paint_line
+		
+	li $a1, 5744
+	li $a2, 6000
 	jal paint_line
 	
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
-	
-	sw $a3 1572($a0)
-	sw $a3 1580($a0)
-	sw $a3 1828($a0)
-	sw $a3 1836($a0)
-	sw $a3 1592($a0)
-	sw $a3 1596($a0)
-	sw $a3 2616($a0)
-	sw $a3 2620($a0)
-	sw $a3 2636($a0)
-	sw $a3 2640($a0)
-	sw $a3 4388($a0)
-	sw $a3 4396($a0)
-	sw $a3 3384($a0)
-	sw $a3 3652($a0)
-	sw $a3 3912($a0)
-	sw $a3 4172($a0)
-	sw $a3 4440($a0)
 jr $ra
 
 # pinta o labirinto de preto
