@@ -59,58 +59,54 @@ main:
 	jal paint_lives	
 	jal contador_da_pontuacao
 	jal posicionar_personagens
-	j a
+	
 	# pintando o stage 1
 	jal paint_stage_1
 
 	game_loop_stage_1:
 	beq $zero, $s6, game_over # checa se a quantidade de vidas é diferente de zero
-		speed(200) # velocidade do pac man
-		jal mover_pac_man
 		jal checar_colisao_fantasma
 		jal contador_da_pontuacao
+		speed(200) # velocidade do pac man
+		jal mover_pac_man
 		
-		beq $s7, 10, end_game_loop_stage_1 # total de pontos stage 1 = 144
-		
+		beq $s7, 5, end_game_loop_stage_1 # 144 pontos stage 1
 	j game_loop_stage_1
 	end_game_loop_stage_1:
 	
-	jal resetar_display
-	a:
+	# pintando a area do labirinto 1 de preto para pintar o labirinto 2
+	jal resetar_labirinto
+	
 	# configurações do stage 2
 	li $s5, 2            	# indicando que estamos no stage 2
+	jal paint_stage_2
+	jal paint_stage_text
 	
 	# pintando o stage 2
-	jal paint_stage_2
+	
 	jal posicionar_personagens
-	
-	li $v0, 1
-	li $a0, 1
-	syscall
-	
+
 	game_loop_stage_2:
 	beq $zero, $s6, game_over 
 		speed(200) # velocidade do pac man
 		jal mover_pac_man
 		jal checar_colisao_fantasma
 		jal contador_da_pontuacao
-		
+		beq $s7, 274, end_game_loop_stage_1 # 130 pontos stage 2, 274 no total.
 	j game_loop_stage_2
 	end_game_loop_stage_2:
 	
 	you_win:
-	jal resetar_display
+	jal resetar_labirinto
 	jal paint_you_win
 	j end_of_program
 	
 	game_over:
-	jal resetar_display
+	jal resetar_labirinto
 	jal paint_game_over
 	end_of_program:
 li $v0, 10 # fim do programa
 syscall
-
-
 
 # checa se o pac man tocou em algum fantasma
 # se ocorreu uma colisao a função pinta a nova quantidade de vidas
@@ -271,24 +267,19 @@ contador_da_pontuacao:
 	addi $sp, $sp, 4
 jr $ra
 
+
 mover_pac_man:
-	la $a0, display_address  # se nao pegar, testar com load word
-	
-	#li $v0, 12 		# movimento com syscall
-	#syscall
-	
-	lw $v0, 0xffff0004# movimento com keyboard
-	
+	la $a0, display_address # se nao pegar, testar com load word
+	lw $v0, 0xffff0004	# movimento com keyboard
+
 	beq $v0, 119, mover_w
 	j nao_mover_w
 	mover_w:
-		# a antiga posicao está em $s0
-		# armazeno a nova posiçao em $t0
 		sub $t0, $s0, 256  			# calculo a nova posição e armazeno em $t0
 		lw $t1, color_blue			# carrego a cor branca em $t1
 		lw $t2, 0($t0)				# carrego o conteudo da nova posição
-		beq $t2, $t1, fim_movimentar_syscall 	# PAREDE, NÃO MOVER
-		lw $t1, color_white
+		beq $t2, $t1, fim_mover_pac_man 	# PAREDE, NÃO MOVER
+		lw $t1, color_white			# salva a nova posição do pac man
 		
 		beq $t2, $t1, incrementar_pontuacao_w 	# INCREMENTAR PONTUACAO
 		j nao_incrementar_pontuacao_w
@@ -300,9 +291,8 @@ mover_pac_man:
 		sw $t1, 0($t0) # nova posição de vermelho
 		lw $t1, color_black #  pinta posição antiga de preto
 		sw $t1, 0($s0)
-		# atualiza posição de memoria do $v0
 		sub $s0, $s0, 256
-	j fim_movimentar_syscall
+		j fim_mover_pac_man
 	nao_mover_w:
 	beq $v0, 97, mover_a
 	j nao_mover_a
@@ -310,8 +300,8 @@ mover_pac_man:
 		sub $t0, $s0, 4  			# calculo a nova posição e armazeno em $t0
 		lw $t1, color_blue			# carrego a cor branca em $t1
 		lw $t2, 0($t0)				# carrego o conteudo da nova posição
-		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor azul, nao mover
-		lw $t1, color_white
+		beq $t2, $t1, fim_mover_pac_man 	# se o conteudo for a cor azul, nao mover
+		lw $t1, color_white			# salva a nova posição do pac man
 		
 		beq $t2, $t1, incrementar_pontuacao_a 	# INCREMENTAR PONTUACAO
 		j nao_incrementar_pontuacao_a
@@ -319,13 +309,27 @@ mover_pac_man:
 			addi $s7, $s7, 1
 		nao_incrementar_pontuacao_a:
 		
+		addi $t1, $a0, 3844 # endereço do portal da esquerda
+		beq $t0, $t1, mover_pelo_portal_w  # se der falso, entao é um movimento comum
+		
+		# MOVIMENTO COMUM
 		lw $t1, color_yellow
 		sw $t1, 0($t0) 				# nova posição de vermelho
 		lw $t1, color_black  			# pinta posição antida de preto
 		sw $t1, 0($s0) 				# posição antiga do personagem
-		# atualiza posição de memoria do $v0
-		sub $s0, $s0, 4
-	j fim_movimentar_syscall
+		sub $s0, $s0, 4				# salva a nova posição do pac man
+		j fim_mover_pac_man
+		
+		# MOVIMENTO PELO PORTAL ESQUERDO - muda a posição para 3952
+		mover_pelo_portal_w:
+		addi $t0, $a0, 3952   	# endereço do portal direito
+		lw $t1, color_yellow	# carregando a cor amarela
+		sw $t1, 0($t0)		# pintando o pac man no outro portal
+		lw $t1, color_black	# carregando a cor preto
+		sw $t1, 0($s0)		# pintando de preto onde o pac man estava
+		addi $s0, $a0, 3952	# salva a nova posição do pac man
+		
+		j fim_mover_pac_man
 	nao_mover_a:
 	beq $v0, 115, mover_s
 	j nao_mover_s
@@ -333,7 +337,7 @@ mover_pac_man:
 		add $t0, $s0, 256  			# calculo a nova posição e armazeno em $t0
 		lw $t1, color_blue			# carrego a cor branca em $t1
 		lw $t2, 0($t0)				# carrego o conteudo da nova posição
-		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor azul, nao mover
+		beq $t2, $t1, fim_mover_pac_man 	# se o conteudo for a cor azul, nao mover
 		lw $t1, color_white
 		
 		beq $t2, $t1, incrementar_pontuacao_s 	# INCREMENTAR PONTUACAO
@@ -346,9 +350,8 @@ mover_pac_man:
 		sw $t1, 0($t0) 				# nova posição de vermelho
 		lw $t1, color_black  			# pinta posição antida de preto
 		sw $t1, 0($s0) 				# posição antiga do personagem
-		# atualiza posição de memoria do $v0
 		add $s0, $s0, 256
-	j fim_movimentar_syscall
+		j fim_mover_pac_man
 	nao_mover_s:
 	beq $v0, 100, mover_d
 	j nao_mover_d
@@ -356,7 +359,7 @@ mover_pac_man:
 		add $t0, $s0, 4  			# calculo a nova posição e armazeno em $t0
 		lw $t1, color_blue			# carrego a cor branca em $t1
 		lw $t2, 0($t0)				# carrego o conteudo da nova posição
-		beq $t2, $t1, fim_movimentar_syscall 	# se o conteudo for a cor azul, nao mover
+		beq $t2, $t1, fim_mover_pac_man 	# se o conteudo for a cor azul, nao mover
 		lw $t1, color_white
 		
 		beq $t2, $t1, incrementar_pontuacao_d 	# INCREMENTAR PONTUACAO
@@ -365,16 +368,30 @@ mover_pac_man:
 			addi $s7, $s7, 1
 		nao_incrementar_pontuacao_d:
 		
+		addi $t1, $a0, 3956 # endereço do portal da direita
+		beq $t0, $t1, mover_pelo_portal_d  # se der falso, entao é um movimento comum
+		
+		# MOVIMENTO COMUM
 		lw $t1, color_yellow
 		sw $t1, 0($t0) 				# nova posição de vermelho
 		lw $t1, color_black 			# pinta posição antida de preto
 		sw $t1, 0($s0) 				# posição antiga do personagem
-		# atualiza posição de memoria do $v0
-		add $s0, $s0, 4
-	j fim_movimentar_syscall
+		add $s0, $s0, 4				# salva a nova posição do pac man
+		j fim_mover_pac_man
+		
+		# MOVIMENTO PELO PORTAL DIREITO - muda a posição para 3848
+		mover_pelo_portal_d:
+		addi $t0, $a0, 3848   	# endereço do portal direito
+		lw $t1, color_yellow	# carregando a cor amarela
+		sw $t1, 0($t0)		# pintando o pac man no outro portal
+		lw $t1, color_black	# carregando a cor preto
+		sw $t1, 0($s0)		# pintando de preto onde o pac man estava
+		addi $s0, $a0, 3848	# salva a nova posição do pac man
+		
+		j fim_mover_pac_man
 	nao_mover_d:
 	
-	fim_movimentar_syscall:
+	fim_mover_pac_man:
 jr $ra
 
 # pinta no display o labirinto e  a pontuação
@@ -858,6 +875,7 @@ jr $ra
 
 # pinta no display o labirinto e a pontuação
 paint_stage_2:
+	la $a0, display_address
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
 	
@@ -2496,19 +2514,25 @@ paint_you_win:
 	sw $a3 4440($a0)
 jr $ra
 
-resetar_display:
+# pinta o labirinto de preto
+resetar_labirinto:
 	la $a0, display_address
-	li $t0, 0
-	lw $t1, display_size
-	lw $t3, color_black
-	resetar_display_loop:
-	beq $t0, $t1, end_resetar_display_loop
-	sll $t2, $t0, 2
-	add $t2, $t2, $a0
-	sw $t3, 0($t2)
-	addi $t0, $t0, 1
-	j resetar_display_loop
-	end_resetar_display_loop:
-	lw $t3, color_white
-	sw $t3, 8188($a0)
+	li $t4, 260
+	lw $a3, color_black
+	li $t1, 4
+	
+	addi $sp, $sp, -4
+	sw $ra 0($sp)
+
+	loop_reset:
+	bgt $t4, 7428, end_loop_reset
+		move $a1, $t4
+		addi $a2, $t4, 112
+		jal paint_line
+	addi $t4, $t4, 256
+	j loop_reset
+	end_loop_reset:
+	
+	lw $ra 0($sp)
+	addi $sp, $sp, 4
 jr $ra
