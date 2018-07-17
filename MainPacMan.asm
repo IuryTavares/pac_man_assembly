@@ -124,19 +124,109 @@ li $v0, 10 # fim do programa
 syscall
 
 movimentar_fantasmas:
-	
-	
 	begin_fantasma_vermelho:
+	li $t0, 0 # conta a quantidade de movimentos válidos
+	
+	###### 1º parte, contando movimentos possíveis ######
+	sub $t1, $s1, 256	# endereço fantasma vermelho acima
+	sub $t2, $s1, 4		# endereço fantasma vermelho esquerda
+	addi $t3, $s1, 256	# endereço fantasma vermelho abaixo
+	addi $t4, $s1, 4	# endereço fantasma vermelho direita
+	
+	lw $a2, 0($t1)	
+	lw $a3, color_blue
+	beq $a3, $a2, invalido_cima_red # parede acima
+	lw $a3, color_orange
+	beq $a3, $a2, invalido_cima_red # fantasma laranja acima
+	lw $a3, color_ciano	
+	beq $a3, $a2, invalido_cima_red # fantasma azul acima
+	lw $a3, color_pink	
+	beq $a3, $a2, invalido_cima_red # fantasma rosa acima
+	addi $t0, $t0, 1
+	invalido_cima_red:
+	
+	lw $a2, 0($t2)		
+	lw $a3, color_blue
+	beq $a3, $a2, invalido_esquerda_red # parede a esquerda
+	lw $a3, color_orange
+	beq $a3, $a2, invalido_esquerda_red # fantasma laranja a esquerda
+	lw $a3, color_ciano	
+	beq $a3, $a2, invalido_esquerda_red # fantasma azul a esquerda
+	lw $a3, color_pink	
+	beq $a3, $a2, invalido_esquerda_red # fantasma rosa a esquerda
+	addi $t0, $t0, 1
+	invalido_esquerda_red:
+	
+	lw $a2, 0($t3)	
+	lw $a3, color_blue
+	beq $a3, $a2, invalido_baixo_red # parede abaixo
+	lw $a3, color_orange
+	beq $a3, $a2, invalido_baixo_red # fantasma laranja abaixo
+	lw $a3, color_ciano	
+	beq $a3, $a2, invalido_baixo_red # fantasma azul abaixo
+	lw $a3, color_pink	
+	beq $a3, $a2, invalido_baixo_red # fantasma rosa abaixo
+	addi $t0, $t0, 1
+	invalido_baixo_red:
+	
+	lw $a2, 0($t4)	
+	lw $a3, color_blue
+	beq $a3, $a2, invalido_direita_red # parede a direita
+	lw $a3, color_orange
+	beq $a3, $a2, invalido_direita_red # fantasma laranja a direita
+	lw $a3, color_ciano	
+	beq $a3, $a2, invalido_direita_red # fantasma azul a direita
+	lw $a3, color_pink	
+	beq $a3, $a2, invalido_direita_red # fantasma rosa a direita
+	addi $t0, $t0, 1
+	invalido_direita_red:
+	
+	### 2º parte, segue para os calculos de movimentação ###
+	beq $t0, 0, nenhum_movimento_possivel_red
+	beq $t0, 1, um_movimento_possivel_red
+	beq $t0, 2, dois_movimentos_possiveis_red
+	beq $t0, 3, tres_movimentos_possiveis_red
+	beq $t0, 4, quatro_movimentos_possiveis_red
+	
+	# permanece na mesma posição
+	nenhum_movimento_possivel_red: 
+	j end__fantasma_vermelho
+	
+	# calcula qual a direção e se movimento nela
+	um_movimento_possivel_red:
+		lw $a3, color_white
+		
+		lw $a2, 0($t1) # mover para cima sobre a pontuação
+		beq $a3, $a2, valido_cima_white  
+		 # IMPLEMENTAR ESTA PORRA DEPOIS
+		valido_cima_white:
+		
+	j end__fantasma_vermelho
+	
+	dois_movimentos_possiveis_red:
+	j end__fantasma_vermelho
+	
+	tres_movimentos_possiveis_red:
+	j end__fantasma_vermelho
+	
+	quatro_movimentos_possiveis_red:
+	j end__fantasma_vermelho
 	
 	end__fantasma_vermelho:
+	
+	
 	
 	begin_fantasma_laranja:
 
 	end__fantasma_laranja:
 	
+	
+	
 	begin_fantasma_azul:
 
 	end__fantasma_azul:
+	
+	
 	
 	begin_fantasma_rosa:
 
