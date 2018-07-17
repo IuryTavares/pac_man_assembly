@@ -78,13 +78,13 @@ main:
 	press_any_key()
 	
 	game_loop_stage_1:
-	beq $zero, $s6, game_over # checa se a quantidade de vidas é diferente de zero
+	beqz $s6, game_over # checa se a quantidade de vidas é diferente de zero
 		sleep(200) # velocidade do pac man
 		jal mover_pac_man
 		jal contador_da_pontuacao
 		jal checar_colisao_fantasma
 		beq $v0, 1, wait_1
-		beq $s7, 144, end_game_loop_stage_1 	# 144 pontos stage 1
+		beq $s7, 10, end_game_loop_stage_1 	# 144 pontos stage 1
 	j game_loop_stage_1
 	end_game_loop_stage_1:
 	
@@ -101,13 +101,13 @@ main:
 	press_any_key()
 	
 	game_loop_stage_2:
-	beq $zero, $s6, game_over 
+	beqz $s6, game_over 
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal mover_pac_man
 		jal contador_da_pontuacao
 		jal checar_colisao_fantasma
 		beq $v0, 1, wait_2
-		beq $s7, 274, end_game_loop_stage_1 # 130 pontos stage 2, 274 no total.
+		beq $s7, 20, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
 	j game_loop_stage_2
 	end_game_loop_stage_2:
 	
@@ -122,6 +122,27 @@ main:
 	end_of_program:
 li $v0, 10 # fim do programa
 syscall
+
+movimentar_fantasmas:
+	
+	
+	begin_fantasma_vermelho:
+	
+	end__fantasma_vermelho:
+	
+	begin_fantasma_laranja:
+
+	end__fantasma_laranja:
+	
+	begin_fantasma_azul:
+
+	end__fantasma_azul:
+	
+	begin_fantasma_rosa:
+
+	end__fantasma_rosa:
+
+jr $ra
 
 # checa se o pac man tocou em algum fantasma
 # se ocorreu uma colisao a função pinta a nova quantidade de vidas
