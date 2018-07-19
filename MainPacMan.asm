@@ -27,10 +27,10 @@ indicador_white_orange:	.word 0		## se for 1, então pintamos a proxima posição d
 
 
 #		(Detalhes importantes)
-# 	endereço topo dir:  0
-#	endereço topo esq:  252
-#	endereço baixo dir  7936
-#	endereço baixo esq: 8188
+# 	endereço topo esq:  0
+#	endereço topo dir:  252
+#	endereço baixo esq:  7936
+#	endereço baixo dir: 8188
 #	mover p/ esquerda: address-4
 #	mover p/ direita:  address+4
 #	mover p/ cima:     address-256
@@ -74,7 +74,7 @@ main:
 	jal paint_pts
 	jal paint_lives	
 	jal contador_da_pontuacao
-	
+	j a
 	# pintando o stage 1
 	jal paint_stage_1
 	
@@ -95,7 +95,7 @@ main:
 	
 	# pintando a area do labirinto 1 de preto para pintar o labirinto 2
 	jal resetar_labirinto
-	
+	a:
 	# configurando e pintando stage 2
 	li $s5, 2            	# indicando que estamos no stage 2
 	jal paint_stage_2
@@ -111,6 +111,7 @@ main:
 		jal mover_pac_man
 		jal contador_da_pontuacao
 		jal checar_colisao_fantasma
+		jal movimentar_fantasmas
 		beq $v0, 1, wait_2
 		beq $s7, 20, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
 	j game_loop_stage_2
@@ -3131,6 +3132,7 @@ movimentar_fantasmas:
 		nao_valido_um_direita_white:
 		
 		###### MOVIMENTO ÚNICO,  PIXEL BRANCO PARA PIXEL PRETO ######### o fantasma está num quadrado branco e se move em direção a um preto
+		
 		um_movimento_branco_preto:
 	j end_fantasma_vermelho
 	
