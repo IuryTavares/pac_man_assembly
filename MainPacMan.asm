@@ -62,10 +62,10 @@ indicador_white_orange:	.word 0		## (0) indica que o movimento anterior do fanta
 indicador_white_ciano:	.word 0		## 
 indicador_white_pink:	.word 0		## se for 1, então pintamos a proxima posição da cor do fantasma e a atual de branco
 
-ultima_direcao_red:	.word 
-ultima_direcao_orange:	.word 
-ultima_direcao_ciano:	.word 
-ultima_direcao_pink:	.word 
+ultima_direcao_red:	.word 2		## Indica a ultima direção que um fantasma se moveu.
+ultima_direcao_orange:	.word 2		##	
+ultima_direcao_ciano:	.word 5		##	(1) cima 	(2) esquerda
+ultima_direcao_pink:	.word 5		## 	(3) baixo 	(5) direita
 
 .text
 .globl main
@@ -3040,6 +3040,8 @@ movimentar_fantasma_vermelho:
 		sw $a3, 0($t1)		# próxima posição do fantasma vermelho fica vermelho
 		sub $s1, $s1, 256	# salvo a nova posição do fantasma vermelho em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_cima_black:
 		
@@ -3053,6 +3055,8 @@ movimentar_fantasma_vermelho:
 		sw $a3, 0($t2)		# próxima posição do fantasma vermelho fica vermelho
 		sub $s1, $s1, 4		# salvo a nova posição do fantasma vermelho em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_esquerda_black:
 		
@@ -3066,6 +3070,8 @@ movimentar_fantasma_vermelho:
 		sw $a3, 0($t3)		# próxima posição do fantasma vermelho fica vermelho
 		addi $s1, $s1, 256	# salvo a nova posição do fantasma vermelho em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_baixo_black:
 		
@@ -3079,6 +3085,8 @@ movimentar_fantasma_vermelho:
 		sw $a3, 0($t4)		# próxima posição do fantasma vermelho fica vermelho
 		addi $s1, $s1, 4	# salvo a nova posição do fantasma vermelho em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_direita_black:
 		
@@ -3095,6 +3103,8 @@ movimentar_fantasma_vermelho:
 		sub $s1, $s1, 256	# salvo a nova posição do fantasma vermelho em $s1
 		li $t0, 1
 		sw $t0, indicador_white_red	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_cima_white:
 		
@@ -3110,6 +3120,8 @@ movimentar_fantasma_vermelho:
 		sub $s1, $s1, 4		# salvo a nova posição do fantasma vermelho em $s1
 		li $t0, 1
 		sw $t0, indicador_white_red	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_esquerda_white:
 		
@@ -3125,6 +3137,8 @@ movimentar_fantasma_vermelho:
 		addi $s1, $s1, 256		# salvo a nova posição do fantasma vermelho em $s1
 		li $t0, 1
 		sw $t0, indicador_white_red	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_baixo_white:
 		
@@ -3140,6 +3154,8 @@ movimentar_fantasma_vermelho:
 		addi $s1, $s1, 4		# salvo a nova posição do fantasma vermelho em $s1
 		li $t0, 1
 		sw $t0, indicador_white_red	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_direita_white:
 		
@@ -3156,6 +3172,8 @@ movimentar_fantasma_vermelho:
 		sw $a3, 0($t1)		# próxima posição do fantasma vermelho fica vermelho
 		sub $s1, $s1, 256	# salvo a nova posição do fantasma vermelho em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_cima_white_black:
 		
@@ -3170,6 +3188,8 @@ movimentar_fantasma_vermelho:
 		sw $a3, 0($t2)		# próxima posição do fantasma vermelho fica vermelho
 		sub $s1, $s1, 4		# salvo a nova posição do fantasma vermelho em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_esquerda_white_black:
 		
@@ -3184,6 +3204,8 @@ movimentar_fantasma_vermelho:
 		sw $a3, 0($t3)		# próxima posição do fantasma vermelho fica vermelho
 		addi $s1, $s1, 256		# salvo a nova posição do fantasma vermelho em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_baixo_white_black:
 		
@@ -3198,6 +3220,8 @@ movimentar_fantasma_vermelho:
 		sw $a3, 0($t3)		# próxima posição do fantasma vermelho fica vermelho
 		addi $s1, $s1, 256		# salvo a nova posição do fantasma vermelho em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_red
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_direita_white_black:
 	j end_fantasma_vermelho
@@ -3218,10 +3242,10 @@ movimentar_fantasma_laranja:
 	li $t0, 0 # conta a quantidade de movimentos válidos
 	
 	###### 1º parte, contando movimentos possíveis ######
-	sub $t1, $s1, 256	# endereço fantasma laranja acima
-	sub $t2, $s1, 4		# endereço fantasma laranja esquerda
-	addi $t3, $s1, 256	# endereço fantasma laranja abaixo
-	addi $t4, $s1, 4	# endereço fantasma laranja direita
+	sub $t1, $s2, 256	# endereço fantasma laranja acima
+	sub $t2, $s2, 4		# endereço fantasma laranja esquerda
+	addi $t3, $s2, 256	# endereço fantasma laranja abaixo
+	addi $t4, $s2, 4	# endereço fantasma laranja direita
 	
 	lw $a2, 0($t1)	
 	lw $a3, color_blue
@@ -3294,11 +3318,13 @@ movimentar_fantasma_laranja:
 		beq $a3, $a2, orange_valido_um_cima_black	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_cima_black		# senão, checamos a proxima direção	
 		orange_valido_um_cima_black:
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
 		lw $a3, color_orange
 		sw $a3, 0($t1)		# próxima posição do fantasma laranja fica laranja
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma laranja em $s1
+		sub $s2, $s2, 256	# salvo a nova posição do fantasma laranja em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_cima_black:
 		
@@ -3307,11 +3333,13 @@ movimentar_fantasma_laranja:
 		beq $a3, $a2, orange_valido_um_esquerda_black	 # se for preto, efetuamos o movimento
 		j orange_nao_valido_um_esquerda_black		# senão, checamos a proxima direção	
 		orange_valido_um_esquerda_black:
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
 		lw $a3, color_orange
 		sw $a3, 0($t2)		# próxima posição do fantasma laranja fica laranja
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma laranja em $s1
+		sub $s2, $s2, 4		# salvo a nova posição do fantasma laranja em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_esquerda_black:
 		
@@ -3320,11 +3348,13 @@ movimentar_fantasma_laranja:
 		beq $a3, $a2, orange_valido_um_baixo_black	 # se for preto, efetuamos o movimento
 		j orange_nao_valido_um_baixo_black		# senão, checamos a proxima direção	
 		orange_valido_um_baixo_black:
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
 		lw $a3, color_orange
 		sw $a3, 0($t3)		# próxima posição do fantasma laranja fica laranja
-		addi $s1, $s1, 256	# salvo a nova posição do fantasma laranja em $s1
+		addi $s2, $s2, 256	# salvo a nova posição do fantasma laranja em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_baixo_black:
 		
@@ -3333,11 +3363,13 @@ movimentar_fantasma_laranja:
 		beq $a3, $a2, orange_valido_um_direita_black	 # se for preto, efetuamos o movimento
 		j orange_nao_valido_um_direita_black		# senão, checamos a proxima direção	
 		orange_valido_um_direita_black:
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
 		lw $a3, color_orange
 		sw $a3, 0($t4)		# próxima posição do fantasma laranja fica laranja
-		addi $s1, $s1, 4	# salvo a nova posição do fantasma laranja em $s1
+		addi $s2, $s2, 4	# salvo a nova posição do fantasma laranja em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_direita_black:
 		
@@ -3348,12 +3380,14 @@ movimentar_fantasma_laranja:
 		j orange_nao_valido_um_cima_white		# senão, checamos a proxima direção	
 		orange_valido_um_cima_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica pintada de branco
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica pintada de branco
 		lw $a3, color_orange
 		sw $a3, 0($t1)		# próxima posição do fantasma laranja fica laranja
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma laranja em $s1
+		sub $s2, $s2, 256	# salvo a nova posição do fantasma laranja em $s2
 		li $t0, 1
 		sw $t0, indicador_white_orange	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_cima_white:
 		
@@ -3363,12 +3397,14 @@ movimentar_fantasma_laranja:
 		j orange_nao_valido_um_esquerda_white		# senão, checamos a proxima direção	
 		orange_valido_um_esquerda_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica pintada de branco
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica pintada de branco
 		lw $a3, color_orange
 		sw $a3, 0($t2)		# próxima posição do fantasma laranja fica laranja
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma laranja em $s1
+		sub $s2, $s2, 4		# salvo a nova posição do fantasma laranja em $s2
 		li $t0, 1
 		sw $t0, indicador_white_orange	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_esquerda_white:
 		
@@ -3378,12 +3414,14 @@ movimentar_fantasma_laranja:
 		j orange_nao_valido_um_baixo_white		# senão, checamos a proxima direção	
 		orange_valido_um_baixo_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica pintada de branco
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica pintada de branco
 		lw $a3, color_orange
 		sw $a3, 0($t3)		# próxima posição do fantasma laranja fica laranja
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma laranja em $s1
+		addi $s2, $s2, 256		# salvo a nova posição do fantasma laranja em $s2
 		li $t0, 1
 		sw $t0, indicador_white_orange	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_baixo_white:
 		
@@ -3393,12 +3431,14 @@ movimentar_fantasma_laranja:
 		j orange_nao_valido_um_direita_white		# senão, checamos a proxima direção	
 		orange_valido_um_direita_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica pintada de branco
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica pintada de branco
 		lw $a3, color_orange
 		sw $a3, 0($t4)		# próxima posição do fantasma laranja fica laranja
-		addi $s1, $s1, 4		# salvo a nova posição do fantasma laranja em $s1
+		addi $s2, $s2, 4		# salvo a nova posição do fantasma laranja em $s2
 		li $t0, 1
 		sw $t0, indicador_white_orange	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_direita_white:
 		
@@ -3410,11 +3450,13 @@ movimentar_fantasma_laranja:
 		j orange_nao_valido_um_cima_white_black		# senão, checamos a proxima direção	
 		orange_valido_um_cima_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
 		lw $a3, color_orange
 		sw $a3, 0($t1)		# próxima posição do fantasma laranja fica laranja
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma laranja em $s1
+		sub $s2, $s2, 256	# salvo a nova posição do fantasma laranja em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_cima_white_black:
 		
@@ -3424,11 +3466,13 @@ movimentar_fantasma_laranja:
 		j orange_nao_valido_um_esquerda_white_black		# senão, checamos a proxima direção	
 		orange_valido_um_esquerda_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
 		lw $a3, color_orange
 		sw $a3, 0($t2)		# próxima posição do fantasma laranja fica laranja
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma laranja em $s1
+		sub $s2, $s2, 4		# salvo a nova posição do fantasma laranja em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_esquerda_white_black:
 		
@@ -3438,11 +3482,13 @@ movimentar_fantasma_laranja:
 		j orange_nao_valido_um_baixo_white_black		# senão, checamos a proxima direção	
 		orange_valido_um_baixo_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
 		lw $a3, color_orange
 		sw $a3, 0($t3)		# próxima posição do fantasma laranja fica laranja
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma laranja em $s1
+		addi $s2, $s2, 256		# salvo a nova posição do fantasma laranja em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_baixo_white_black:
 		
@@ -3452,16 +3498,30 @@ movimentar_fantasma_laranja:
 		j orange_nao_valido_um_direita_white_black		# senão, checamos a proxima direção	
 		orange_valido_um_direita_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
 		lw $a3, color_orange
 		sw $a3, 0($t3)		# próxima posição do fantasma laranja fica laranja
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma laranja em $s1
+		addi $s2, $s2, 256		# salvo a nova posição do fantasma laranja em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_orange
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_direita_white_black:
 	j end_fantasma_laranja
 	
+	# Se for um corredor: Checa o ultimo movimento efetuado e continua o movimento
+	# Se for uma curva: Muda o movimento para essa curva
+	#
+	# corredor: se os dois movimentos possíveis forem opostos
+	# curva: se os dois movimentos possíveis forem ortogonais entre si
 	dois_movimentos_possiveis_orange:
+		
+		
+		orange_corredor:
+		
+		j end_fantasma_laranja
+		orange_curva
+		
 	j end_fantasma_laranja
 	
 	tres_movimentos_possiveis_orange:
@@ -3478,10 +3538,10 @@ movimentar_fantasma_azul:
 	li $t0, 0 # conta a quantidade de movimentos válidos
 	
 	###### 1º parte, contando movimentos possíveis ######
-	sub $t1, $s1, 256	# endereço fantasma azul acima
-	sub $t2, $s1, 4		# endereço fantasma azul esquerda
-	addi $t3, $s1, 256	# endereço fantasma azul abaixo
-	addi $t4, $s1, 4	# endereço fantasma azul direita
+	sub $t1, $s3, 256	# endereço fantasma azul acima
+	sub $t2, $s3, 4		# endereço fantasma azul esquerda
+	addi $t3, $s3, 256	# endereço fantasma azul abaixo
+	addi $t4, $s3, 4	# endereço fantasma azul direita
 	
 	lw $a2, 0($t1)	
 	lw $a3, color_blue
@@ -3554,11 +3614,13 @@ movimentar_fantasma_azul:
 		beq $a3, $a2, ciano_valido_um_cima_black	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_cima_black		# senão, checamos a proxima direção	
 		ciano_valido_um_cima_black:
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
 		lw $a3, color_ciano
 		sw $a3, 0($t1)		# próxima posição do fantasma azul fica azul
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma azul em $s1
+		sub $s3, $s3, 256	# salvo a nova posição do fantasma azul em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_cima_black:
 		
@@ -3567,11 +3629,13 @@ movimentar_fantasma_azul:
 		beq $a3, $a2, ciano_valido_um_esquerda_black	 # se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_esquerda_black		# senão, checamos a proxima direção	
 		ciano_valido_um_esquerda_black:
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
 		lw $a3, color_ciano
 		sw $a3, 0($t2)		# próxima posição do fantasma azul fica azul
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma azul em $s1
+		sub $s3, $s3, 4		# salvo a nova posição do fantasma azul em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_esquerda_black:
 		
@@ -3580,11 +3644,13 @@ movimentar_fantasma_azul:
 		beq $a3, $a2, ciano_valido_um_baixo_black	 # se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_baixo_black		# senão, checamos a proxima direção	
 		ciano_valido_um_baixo_black:
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
 		lw $a3, color_ciano
 		sw $a3, 0($t3)		# próxima posição do fantasma azul fica azul
-		addi $s1, $s1, 256	# salvo a nova posição do fantasma azul em $s1
+		addi $s3, $s3, 256	# salvo a nova posição do fantasma azul em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_baixo_black:
 		
@@ -3593,11 +3659,13 @@ movimentar_fantasma_azul:
 		beq $a3, $a2, ciano_valido_um_direita_black	 # se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_direita_black		# senão, checamos a proxima direção	
 		ciano_valido_um_direita_black:
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
 		lw $a3, color_ciano
 		sw $a3, 0($t4)		# próxima posição do fantasma azul fica azul
-		addi $s1, $s1, 4	# salvo a nova posição do fantasma azul em $s1
+		addi $s3, $s3, 4	# salvo a nova posição do fantasma azul em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_direita_black:
 		
@@ -3608,12 +3676,14 @@ movimentar_fantasma_azul:
 		j ciano_nao_valido_um_cima_white		# senão, checamos a proxima direção	
 		ciano_valido_um_cima_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica pintada de branco
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica pintada de branco
 		lw $a3, color_ciano
 		sw $a3, 0($t1)		# próxima posição do fantasma azul fica azul
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma azul em $s1
+		sub $s3, $s3, 256	# salvo a nova posição do fantasma azul em $s3
 		li $t0, 1
 		sw $t0, indicador_white_ciano	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_cima_white:
 		
@@ -3623,12 +3693,14 @@ movimentar_fantasma_azul:
 		j ciano_nao_valido_um_esquerda_white		# senão, checamos a proxima direção	
 		ciano_valido_um_esquerda_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica pintada de branco
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica pintada de branco
 		lw $a3, color_ciano
 		sw $a3, 0($t2)		# próxima posição do fantasma azul fica azul
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma azul em $s1
+		sub $s3, $s3, 4		# salvo a nova posição do fantasma azul em $s3
 		li $t0, 1
 		sw $t0, indicador_white_ciano	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_esquerda_white:
 		
@@ -3638,12 +3710,14 @@ movimentar_fantasma_azul:
 		j ciano_nao_valido_um_baixo_white		# senão, checamos a proxima direção	
 		ciano_valido_um_baixo_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica pintada de branco
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica pintada de branco
 		lw $a3, color_ciano
 		sw $a3, 0($t3)		# próxima posição do fantasma azul fica azul
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma azul em $s1
+		addi $s3, $s3, 256		# salvo a nova posição do fantasma azul em $s3
 		li $t0, 1
 		sw $t0, indicador_white_ciano	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_baixo_white:
 		
@@ -3653,12 +3727,14 @@ movimentar_fantasma_azul:
 		j ciano_nao_valido_um_direita_white		# senão, checamos a proxima direção	
 		ciano_valido_um_direita_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica pintada de branco
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica pintada de branco
 		lw $a3, color_ciano
 		sw $a3, 0($t4)		# próxima posição do fantasma azul fica azul
-		addi $s1, $s1, 4		# salvo a nova posição do fantasma azul em $s1
+		addi $s3, $s3, 4		# salvo a nova posição do fantasma azul em $s3
 		li $t0, 1
 		sw $t0, indicador_white_ciano	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_direita_white:
 		
@@ -3670,11 +3746,13 @@ movimentar_fantasma_azul:
 		j ciano_nao_valido_um_cima_white_black		# senão, checamos a proxima direção	
 		ciano_valido_um_cima_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
 		lw $a3, color_ciano
 		sw $a3, 0($t1)		# próxima posição do fantasma azul fica azul
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma azul em $s1
+		sub $s3, $s3, 256	# salvo a nova posição do fantasma azul em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_cima_white_black:
 		
@@ -3684,11 +3762,13 @@ movimentar_fantasma_azul:
 		j ciano_nao_valido_um_esquerda_white_black		# senão, checamos a proxima direção	
 		ciano_valido_um_esquerda_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
 		lw $a3, color_ciano
 		sw $a3, 0($t2)		# próxima posição do fantasma azul fica azul
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma azul em $s1
+		sub $s3, $s3, 4		# salvo a nova posição do fantasma azul em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_esquerda_white_black:
 		
@@ -3698,11 +3778,13 @@ movimentar_fantasma_azul:
 		j ciano_nao_valido_um_baixo_white_black		# senão, checamos a proxima direção	
 		ciano_valido_um_baixo_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
 		lw $a3, color_ciano
 		sw $a3, 0($t3)		# próxima posição do fantasma azul fica azul
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma azul em $s1
+		addi $s3, $s3, 256		# salvo a nova posição do fantasma azul em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_baixo_white_black:
 		
@@ -3712,11 +3794,13 @@ movimentar_fantasma_azul:
 		j ciano_nao_valido_um_direita_white_black		# senão, checamos a proxima direção	
 		ciano_valido_um_direita_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
 		lw $a3, color_ciano
 		sw $a3, 0($t3)		# próxima posição do fantasma azul fica azul
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma azul em $s1
+		addi $s3, $s3, 256		# salvo a nova posição do fantasma azul em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_ciano
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_direita_white_black:
 	j end_fantasma_azul
@@ -3737,10 +3821,10 @@ movimentar_fantasma_rosa:
 	li $t0, 0 # conta a quantidade de movimentos válidos
 	
 	###### 1º parte, contando movimentos possíveis ######
-	sub $t1, $s1, 256	# endereço fantasma rosa acima
-	sub $t2, $s1, 4		# endereço fantasma rosa esquerda
-	addi $t3, $s1, 256	# endereço fantasma rosa abaixo
-	addi $t4, $s1, 4	# endereço fantasma rosa direita
+	sub $t1, $s4, 256	# endereço fantasma rosa acima
+	sub $t2, $s4, 4		# endereço fantasma rosa esquerda
+	addi $t3, $s4, 256	# endereço fantasma rosa abaixo
+	addi $t4, $s4, 4	# endereço fantasma rosa direita
 	
 	lw $a2, 0($t1)	
 	lw $a3, color_blue
@@ -3813,11 +3897,13 @@ movimentar_fantasma_rosa:
 		beq $a3, $a2, rosa_valido_um_cima_black	# se for preto, efetuamos o movimento
 		j rosa_nao_valido_um_cima_black		# senão, checamos a proxima direção	
 		rosa_valido_um_cima_black:
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica preto
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica preto
 		lw $a3, color_pink
 		sw $a3, 0($t1)		# próxima posição do fantasma rosa fica rosa
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma rosa em $s1
+		sub $s4, $s4, 256	# salvo a nova posição do fantasma rosa em $s4
 		sw $zero, indicador_white_pink	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_cima_black:
 		
@@ -3826,11 +3912,13 @@ movimentar_fantasma_rosa:
 		beq $a3, $a2, rosa_valido_um_esquerda_black	 # se for preto, efetuamos o movimento
 		j rosa_nao_valido_um_esquerda_black		# senão, checamos a proxima direção	
 		rosa_valido_um_esquerda_black:
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica preto
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica preto
 		lw $a3, color_pink
 		sw $a3, 0($t2)		# próxima posição do fantasma rosa fica rosa
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma rosa em $s1
+		sub $s4, $s4, 4		# salvo a nova posição do fantasma rosa em $s4
 		sw $zero, indicador_white_pink	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_esquerda_black:
 		
@@ -3839,11 +3927,13 @@ movimentar_fantasma_rosa:
 		beq $a3, $a2, rosa_valido_um_baixo_black	 # se for preto, efetuamos o movimento
 		j rosa_nao_valido_um_baixo_black		# senão, checamos a proxima direção	
 		rosa_valido_um_baixo_black:
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica preto
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica preto
 		lw $a3, color_pink
 		sw $a3, 0($t3)		# próxima posição do fantasma rosa fica rosa
-		addi $s1, $s1, 256	# salvo a nova posição do fantasma rosa em $s1
+		addi $s4, $s4, 256	# salvo a nova posição do fantasma rosa em $s4
 		sw $zero, indicador_white_pink	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_baixo_black:
 		
@@ -3852,11 +3942,13 @@ movimentar_fantasma_rosa:
 		beq $a3, $a2, rosa_valido_um_direita_black	 # se for preto, efetuamos o movimento
 		j rosa_nao_valido_um_direita_black		# senão, checamos a proxima direção	
 		rosa_valido_um_direita_black:
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica preto
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica preto
 		lw $a3, color_pink
 		sw $a3, 0($t4)		# próxima posição do fantasma rosa fica rosa
-		addi $s1, $s1, 4	# salvo a nova posição do fantasma rosa em $s1
+		addi $s4, $s4, 4	# salvo a nova posição do fantasma rosa em $s4
 		sw $zero, indicador_white_pink	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_direita_black:
 		
@@ -3867,12 +3959,14 @@ movimentar_fantasma_rosa:
 		j rosa_nao_valido_um_cima_white		# senão, checamos a proxima direção	
 		rosa_valido_um_cima_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica pintada de branco
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica pintada de branco
 		lw $a3, color_pink
 		sw $a3, 0($t1)		# próxima posição do fantasma rosa fica rosa
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma rosa em $s1
+		sub $s4, $s4, 256	# salvo a nova posição do fantasma rosa em $s4
 		li $t0, 1
 		sw $t0, indicador_white_pink	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_cima_white:
 		
@@ -3882,12 +3976,14 @@ movimentar_fantasma_rosa:
 		j rosa_nao_valido_um_esquerda_white		# senão, checamos a proxima direção	
 		rosa_valido_um_esquerda_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica pintada de branco
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica pintada de branco
 		lw $a3, color_pink
 		sw $a3, 0($t2)		# próxima posição do fantasma rosa fica rosa
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma rosa em $s1
+		sub $s4, $s4, 4		# salvo a nova posição do fantasma rosa em $s4
 		li $t0, 1
 		sw $t0, indicador_white_pink	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_esquerda_white:
 		
@@ -3897,12 +3993,14 @@ movimentar_fantasma_rosa:
 		j rosa_nao_valido_um_baixo_white		# senão, checamos a proxima direção	
 		rosa_valido_um_baixo_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica pintada de branco
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica pintada de branco
 		lw $a3, color_pink
 		sw $a3, 0($t3)		# próxima posição do fantasma rosa fica rosa
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma rosa em $s1
+		addi $s4, $s4, 256		# salvo a nova posição do fantasma rosa em $s4
 		li $t0, 1
 		sw $t0, indicador_white_pink	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_baixo_white:
 		
@@ -3912,12 +4010,14 @@ movimentar_fantasma_rosa:
 		j rosa_nao_valido_um_direita_white		# senão, checamos a proxima direção	
 		rosa_valido_um_direita_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica pintada de branco
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica pintada de branco
 		lw $a3, color_pink
 		sw $a3, 0($t4)		# próxima posição do fantasma rosa fica rosa
-		addi $s1, $s1, 4		# salvo a nova posição do fantasma rosa em $s1
+		addi $s4, $s4, 4		# salvo a nova posição do fantasma rosa em $s4
 		li $t0, 1
 		sw $t0, indicador_white_pink	# indico que o movimento FOI sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_direita_white:
 		
@@ -3929,11 +4029,13 @@ movimentar_fantasma_rosa:
 		j rosa_nao_valido_um_cima_white_black		# senão, checamos a proxima direção	
 		rosa_valido_um_cima_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica preto
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica preto
 		lw $a3, color_pink
 		sw $a3, 0($t1)		# próxima posição do fantasma rosa fica rosa
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma rosa em $s1
+		sub $s4, $s4, 256	# salvo a nova posição do fantasma rosa em $s4
 		sw $zero, indicador_white_pink	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 1
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_cima_white_black:
 		
@@ -3943,11 +4045,13 @@ movimentar_fantasma_rosa:
 		j rosa_nao_valido_um_esquerda_white_black		# senão, checamos a proxima direção	
 		rosa_valido_um_esquerda_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica preto
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica preto
 		lw $a3, color_pink
 		sw $a3, 0($t2)		# próxima posição do fantasma rosa fica rosa
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma rosa em $s1
+		sub $s4, $s4, 4		# salvo a nova posição do fantasma rosa em $s4
 		sw $zero, indicador_white_pink	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 2
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_esquerda_white_black:
 		
@@ -3957,11 +4061,13 @@ movimentar_fantasma_rosa:
 		j rosa_nao_valido_um_baixo_white_black		# senão, checamos a proxima direção	
 		rosa_valido_um_baixo_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica preto
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica preto
 		lw $a3, color_pink
 		sw $a3, 0($t3)		# próxima posição do fantasma rosa fica rosa
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma rosa em $s1
+		addi $s4, $s4, 256		# salvo a nova posição do fantasma rosa em $s4
 		sw $zero, indicador_white_pink	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 3
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_baixo_white_black:
 		
@@ -3971,11 +4077,13 @@ movimentar_fantasma_rosa:
 		j rosa_nao_valido_um_direita_white_black		# senão, checamos a proxima direção	
 		rosa_valido_um_direita_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma rosa fica preto
+		sw $a3, 0($s4)		# posição atual do fantasma rosa fica preto
 		lw $a3, color_pink
 		sw $a3, 0($t3)		# próxima posição do fantasma rosa fica rosa
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma rosa em $s1
+		addi $s4, $s4, 256		# salvo a nova posição do fantasma rosa em $s4
 		sw $zero, indicador_white_pink	# indico que o movimento não foi sobre uma pontuação
+		li $t0, 5
+		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_direita_white_black:
 	j end_fantasma_rosa
