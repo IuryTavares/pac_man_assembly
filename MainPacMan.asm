@@ -3520,7 +3520,7 @@ movimentar_fantasma_laranja:
 		orange_corredor:
 		
 		j end_fantasma_laranja
-		orange_curva
+		orange_curva:
 		
 	j end_fantasma_laranja
 	
@@ -3819,6 +3819,7 @@ jr $ra
 	
 movimentar_fantasma_rosa:
 	li $t0, 0 # conta a quantidade de movimentos válidos
+	li $t9, 0 # lógica para determinar o sentido do movimento de várias direções
 	
 	###### 1º parte, contando movimentos possíveis ######
 	sub $t1, $s4, 256	# endereço fantasma rosa acima
@@ -3836,6 +3837,7 @@ movimentar_fantasma_rosa:
 	lw $a3, color_ciano
 	beq $a3, $a2, invalido_cima_pink # fantasma ciano acima
 	addi $t0, $t0, 1
+	addi $t9, $t9, 1 
 	invalido_cima_pink:
 	
 	lw $a2, 0($t2)		
@@ -3848,6 +3850,7 @@ movimentar_fantasma_rosa:
 	lw $a3, color_ciano	
 	beq $a3, $a2, invalido_esquerda_pink # fantasma ciano a esquerda
 	addi $t0, $t0, 1
+	addi $t9, $t9, 2
 	invalido_esquerda_pink:
 	
 	lw $a2, 0($t3)	
@@ -3860,6 +3863,7 @@ movimentar_fantasma_rosa:
 	lw $a3, color_ciano	
 	beq $a3, $a2, invalido_baixo_pink # fantasma ciano abaixo
 	addi $t0, $t0, 1
+	addi $t9, $t9, 3
 	invalido_baixo_pink:
 	
 	lw $a2, 0($t4)	
@@ -3872,6 +3876,7 @@ movimentar_fantasma_rosa:
 	lw $a3, color_ciano	
 	beq $a3, $a2, invalido_direita_pink # fantasma ciano a direita
 	addi $t0, $t0, 1
+	addi $t9, $t9, 5
 	invalido_direita_pink:
 	
 	### 2º parte, segue para os calculos de movimentação ###
@@ -4089,6 +4094,34 @@ movimentar_fantasma_rosa:
 	j end_fantasma_rosa
 	
 	dois_movimentos_possiveis_rosa:
+		# checa se o movimento é em linha reta
+		beq $t9, 7, corredor_horizontal_rosa
+		beq $t9, 4, corredor_vertical_rosa
+		# se não for, o movimento é em curva
+		j curva_rosa
+		
+		# MOVIMENTO EM LINHA RETA - continua o movimento anterior
+		corredor_horizontal_rosa:
+			lw $t0, ultima_direcao_pink
+			sub $t9, $t9, $t0
+			beq $t9, 5, esquerda_corredor_horizontal_rosa
+			beq $t9, 2, direita_corredor_horizontal_rosa
+			esquerda_corredor_horizontal_rosa:
+				# preto preto
+				# preto branco
+				# branco preto 
+			direita_corredor_horizontal_rosa:
+				# preto preto
+				# preto branco
+				# branco preto 
+			
+		j end_fantasma_rosa
+		
+		corredor_vertical_rosa:
+		
+		#MOVIMENTO EM CURVA
+		curva_rosa:
+		
 	j end_fantasma_rosa
 	
 	tres_movimentos_possiveis_rosa:
