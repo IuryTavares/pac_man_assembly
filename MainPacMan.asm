@@ -3026,7 +3026,7 @@ movimentar_fantasma_vermelho:
 	# calcula qual a direção e se movimento nela
 	um_movimento_possivel_red:
 		lw $t0, indicador_white_red
-		beq $t0, 1, red_um_movimento_white_black # indica que o ultimo movimento foi num pixel branco, direcionamos o fluxo para as checagens corretas
+		beq $t0, 1, red_um_movimento_WHITE_BLACK # indica que o ultimo movimento foi num pixel branco, direcionamos o fluxo para as checagens corretas
 		# se o branch acima der falso, significa que o ultimo movimento não foi sobre um pixel branco
 		
 		###### MOVIMENTO ÚNICO, PIXEL PRETO PARA PIXEL PRETO #########
@@ -3159,7 +3159,7 @@ movimentar_fantasma_vermelho:
 		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_direita_white:
 		
-		red_um_movimento_white_black: # label indicador de movimento de pixel branco para pixel preto
+		red_um_movimento_WHITE_BLACK: # label indicador de movimento de pixel branco para pixel preto
 		###### MOVIMENTO ÚNICO,  PIXEL BRANCO PARA PIXEL PRETO ######### o fantasma está num quadrado branco e se move em direção a um preto
 		lw $a3, color_black
 		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
@@ -3309,7 +3309,7 @@ movimentar_fantasma_laranja:
 	# calcula qual a direção e se movimento nela
 	um_movimento_possivel_orange:
 		lw $t0, indicador_white_orange
-		beq $t0, 1, orange_um_movimento_white_black # indica que o ultimo movimento foi num pixel branco, direcionamos o fluxo para as checagens corretas
+		beq $t0, 1, orange_um_movimento_WHITE_BLACK # indica que o ultimo movimento foi num pixel branco, direcionamos o fluxo para as checagens corretas
 		# se o branch acima der falso, significa que o ultimo movimento não foi sobre um pixel branco
 		
 		###### MOVIMENTO ÚNICO, PIXEL PRETO PARA PIXEL PRETO #########
@@ -3442,7 +3442,7 @@ movimentar_fantasma_laranja:
 		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_direita_white:
 		
-		orange_um_movimento_white_black: # label indicador de movimento de pixel branco para pixel preto
+		orange_um_movimento_WHITE_BLACK: # label indicador de movimento de pixel branco para pixel preto
 		###### MOVIMENTO ÚNICO,  PIXEL BRANCO PARA PIXEL PRETO ######### o fantasma está num quadrado branco e se move em direção a um preto
 		lw $a3, color_black
 		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma laranja
@@ -3605,7 +3605,7 @@ movimentar_fantasma_azul:
 	# calcula qual a direção e se movimento nela
 	um_movimento_possivel_ciano:
 		lw $t0, indicador_white_ciano
-		beq $t0, 1, ciano_um_movimento_white_black # indica que o ultimo movimento foi num pixel branco, direcionamos o fluxo para as checagens corretas
+		beq $t0, 1, ciano_um_movimento_WHITE_BLACK # indica que o ultimo movimento foi num pixel branco, direcionamos o fluxo para as checagens corretas
 		# se o branch acima der falso, significa que o ultimo movimento não foi sobre um pixel branco
 		
 		###### MOVIMENTO ÚNICO, PIXEL PRETO PARA PIXEL PRETO #########
@@ -3738,7 +3738,7 @@ movimentar_fantasma_azul:
 		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_direita_white:
 		
-		ciano_um_movimento_white_black: # label indicador de movimento de pixel branco para pixel preto
+		ciano_um_movimento_WHITE_BLACK: # label indicador de movimento de pixel branco para pixel preto
 		###### MOVIMENTO ÚNICO,  PIXEL BRANCO PARA PIXEL PRETO ######### o fantasma está num quadrado branco e se move em direção a um preto
 		lw $a3, color_black
 		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma azul
@@ -3893,7 +3893,7 @@ movimentar_fantasma_rosa:
 	# calcula qual a direção e se movimento nela
 	um_movimento_possivel_rosa:
 		lw $t0, indicador_white_pink
-		beq $t0, 1, rosa_um_movimento_white_black # indica que o ultimo movimento foi num pixel branco, direcionamos o fluxo para as checagens corretas
+		beq $t0, 1, rosa_um_movimento_WHITE_BLACK # indica que o ultimo movimento foi num pixel branco, direcionamos o fluxo para as checagens corretas
 		# se o branch acima der falso, significa que o ultimo movimento não foi sobre um pixel branco
 		
 		###### MOVIMENTO ÚNICO, PIXEL PRETO PARA PIXEL PRETO #########
@@ -4026,7 +4026,7 @@ movimentar_fantasma_rosa:
 		j end_fantasma_rosa	# passamos a checar o movimento do próximo fantasma
 		rosa_nao_valido_um_direita_white:
 		
-		rosa_um_movimento_white_black: # label indicador de movimento de pixel branco para pixel preto
+		rosa_um_movimento_WHITE_BLACK: # label indicador de movimento de pixel branco para pixel preto
 		###### MOVIMENTO ÚNICO,  PIXEL BRANCO PARA PIXEL PRETO ######### o fantasma está num quadrado branco e se move em direção a um preto
 		lw $a3, color_black
 		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma rosa
@@ -4094,11 +4094,13 @@ movimentar_fantasma_rosa:
 	j end_fantasma_rosa
 	
 	dois_movimentos_possiveis_rosa:
-		# checa se o movimento é em linha reta
+		# checa o tipo do movimento
 		beq $t9, 7, corredor_horizontal_rosa
 		beq $t9, 4, corredor_vertical_rosa
-		# se não for, o movimento é em curva
-		j curva_rosa
+		beq $t9, 3, curva_cima_esquerda_rosa
+		beq $t9, 6, curva_cima_direita_rosa
+		beq $t9, 5, curva_baixo_esquerda_rosa
+		beq $t9, 8, curva_baixo_direita_rosa
 		
 		# MOVIMENTO EM LINHA RETA - continua o movimento anterior
 		corredor_horizontal_rosa:
@@ -4107,21 +4109,608 @@ movimentar_fantasma_rosa:
 			beq $t9, 5, esquerda_corredor_horizontal_rosa
 			beq $t9, 2, direita_corredor_horizontal_rosa
 			esquerda_corredor_horizontal_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, esquerda_corredor_horizontal_rosa_WHITE_BLACK
+				
 				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, rosa_valido_dois_esquerda_black_black
+				j rosa_nao_valido_dois_esquerda_black_black	
+				rosa_valido_dois_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t2)
+				sub $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 2
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_esquerda_black_black:
+				
 				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, rosa_valido_dois_esquerda_black_white
+				j rosa_nao_valido_dois_esquerda_black_white	
+				rosa_valido_dois_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t2)
+				sub $s4, $s4, 4
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 2
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_esquerda_black_white:
+				
 				# branco preto 
+				esquerda_corredor_horizontal_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, rosa_valido_dois_esquerda_white_black
+				j rosa_nao_valido_dois_esquerda_white_black	
+				rosa_valido_dois_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t2)
+				sub $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 2
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_esquerda_white_black:
+				
 			direita_corredor_horizontal_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, direita_corredor_horizontal_rosa_WHITE_BLACK
+				
 				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, rosa_valido_dois_direita_black_black
+				j rosa_nao_valido_dois_direita_black_black	
+				rosa_valido_dois_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t4)
+				addi $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_direita_black_black:
+				
 				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, rosa_valido_dois_direita_black_white
+				j rosa_nao_valido_dois_direita_black_white	
+				rosa_valido_dois_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t4)
+				addi $s4, $s4, 4
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_direita_black_white:
+				
 				# branco preto 
-			
+				direita_corredor_horizontal_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, rosa_valido_dois_direita_white_black
+				j rosa_nao_valido_dois_direita_white_black	
+				rosa_valido_dois_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t4)
+				addi $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_direita_white_black:
 		j end_fantasma_rosa
 		
 		corredor_vertical_rosa:
-		
+			lw $t0, ultima_direcao_pink
+			sub $t9, $t9, $t0
+			beq $t9, 3, cima_corredor_vertical_rosa
+			beq $t9, 1, baixo_corredor_vertical_rosa
+			cima_corredor_vertical_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, cima_corredor_vertical_rosa_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_cima_black_black
+				j rosa_nao_valido_dois_cima_black_black	
+				rosa_valido_dois_cima_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_cima_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_cima_black_white
+				j rosa_nao_valido_dois_cima_black_white	
+				rosa_valido_dois_cima_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_cima_black_white:
+				
+				# branco preto 
+				cima_corredor_vertical_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_cima_white_black
+				j rosa_nao_valido_dois_cima_white_black	
+				rosa_valido_dois_cima_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_cima_white_black:
+				
+			baixo_corredor_vertical_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, baixo_corredor_vertical_rosa_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_baixo_black_black
+				j rosa_nao_valido_dois_baixo_black_black	
+				rosa_valido_dois_baixo_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_baixo_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_baixo_black_white
+				j rosa_nao_valido_dois_baixo_black_white	
+				rosa_valido_dois_baixo_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_baixo_black_white:
+				
+				# branco preto 
+				baixo_corredor_vertical_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_baixo_white_black
+				j rosa_nao_valido_dois_baixo_white_black	
+				rosa_valido_dois_baixo_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_baixo_white_black:
 		#MOVIMENTO EM CURVA
-		curva_rosa:
-		
+		curva_cima_esquerda_rosa:
+			lw $t0, ultima_direcao_pink
+			sub $t9, $t9, $t0
+			beq $t9, -2, curva_CIMA_esquerda_rosa
+			beq $t9, 0, curva_cima_ESQUERDA_rosa
+			curva_CIMA_esquerda_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, curva_CIMA_esquerda_rosa_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_CIMA_esquerda_black_black
+				j rosa_nao_valido_dois_CIMA_esquerda_black_black	
+				rosa_valido_dois_CIMA_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 1
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_CIMA_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_CIMA_esquerda_black_white
+				j rosa_nao_valido_dois_CIMA_esquerda_black_white	
+				rosa_valido_dois_CIMA_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 1
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_CIMA_esquerda_black_white:
+				
+				# branco preto 
+				curva_CIMA_esquerda_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_CIMA_esquerda_white_black
+				j rosa_nao_valido_dois_CIMA_esquerda_white_black	
+				rosa_valido_dois_CIMA_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 1
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_CIMA_esquerda_white_black:	
+				
+			curva_cima_ESQUERDA_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, curva_cima_ESQUERDA_rosa_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, rosa_valido_dois_cima_ESQUERDA_black_black
+				j rosa_nao_valido_dois_cima_ESQUERDA_black_black	
+				rosa_valido_dois_cima_ESQUERDA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t2)
+				sub $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 2
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_cima_ESQUERDA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, rosa_valido_dois_cima_ESQUERDA_black_white
+				j rosa_nao_valido_dois_cima_ESQUERDA_black_white	
+				rosa_valido_dois_cima_ESQUERDA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t2)
+				sub $s4, $s4, 4
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 2
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_cima_ESQUERDA_black_white:
+				
+				# branco preto 
+				curva_cima_ESQUERDA_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, rosa_valido_dois_cima_ESQUERDA_white_black
+				j rosa_nao_valido_dois_cima_ESQUERDA_white_black	
+				rosa_valido_dois_cima_ESQUERDA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t2)
+				sub $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 2
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_cima_ESQUERDA_white_black:
+				
+		curva_cima_direita_rosa:
+			lw $t0, ultima_direcao_pink
+			sub $t9, $t9, $t0
+			beq $t9, 4, curva_CIMA_direita_rosa
+			beq $t9, 3, curva_cima_DIREITA_rosa
+			curva_CIMA_direita_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, curva_CIMA_direita_rosa_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_CIMA_direita_black_black
+				j rosa_nao_valido_dois_CIMA_direita_black_black	
+				rosa_valido_dois_CIMA_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 1
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_CIMA_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_CIMA_direita_black_white
+				j rosa_nao_valido_dois_CIMA_direita_black_white	
+				rosa_valido_dois_CIMA_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 1
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_CIMA_direita_black_white:
+				
+				# branco preto 
+				curva_CIMA_direita_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_CIMA_direita_white_black
+				j rosa_nao_valido_dois_CIMA_direita_white_black	
+				rosa_valido_dois_CIMA_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 1
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_CIMA_direita_white_black:	
+				
+			curva_cima_DIREITA_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, curva_cima_DIREITA_rosa_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, rosa_valido_dois_cima_DIREITA_black_black
+				j rosa_nao_valido_dois_cima_DIREITA_black_black	
+				rosa_valido_dois_cima_DIREITA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t4)
+				addi $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_cima_DIREITA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, rosa_valido_dois_cima_DIREITA_black_white
+				j rosa_nao_valido_dois_cima_DIREITA_black_white	
+				rosa_valido_dois_cima_DIREITA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t4)
+				addi $s4, $s4, 4
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 0
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_cima_DIREITA_black_white:
+				
+				# branco preto 
+				curva_cima_DIREITA_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, rosa_valido_dois_cima_DIREITA_white_black
+				j rosa_nao_valido_dois_cima_DIREITA_white_black	
+				rosa_valido_dois_cima_DIREITA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t4)
+				add $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_cima_DIREITA_white_black:
+				
+		curva_baixo_esquerda_rosa:
+			lw $t0, ultima_direcao_pink
+			sub $t9, $t9, $t0
+			beq $t9, 7, curva_BAIXO_esquerda_rosa
+			beq $t9, 6, curva_baixo_ESQUERDA_rosa
+			curva_BAIXO_esquerda_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, curva_BAIXO_esquerda_rosa_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_BAIXO_esquerda_black_black
+				j rosa_nao_valido_dois_BAIXO_esquerda_black_black	
+				rosa_valido_dois_BAIXO_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 1
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_BAIXO_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_BAIXO_esquerda_black_white
+				j rosa_nao_valido_dois_BAIXO_esquerda_black_white	
+				rosa_valido_dois_BAIXO_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 1
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_BAIXO_esquerda_black_white:
+				
+				# branco preto 
+				curva_BAIXO_esquerda_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, rosa_valido_dois_BAIXO_esquerda_white_black
+				j rosa_nao_valido_dois_BAIXO_esquerda_white_black	
+				rosa_valido_dois_BAIXO_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t1)
+				sub $s4, $s4, 256
+				sw $zero, indicador_white_pink
+				li $t0, 1
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_BAIXO_esquerda_white_black:	
+				
+			curva_baixo_ESQUERDA_rosa:
+				lw $t0, indicador_white_pink
+				beq $t0, 1, curva_baixo_ESQUERDA_rosa_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, rosa_valido_dois_baixo_ESQUERDA_black_black
+				j rosa_nao_valido_dois_baixo_ESQUERDA_black_black	
+				rosa_valido_dois_baixo_ESQUERDA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t4)
+				addi $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_baixo_ESQUERDA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, rosa_valido_dois_baixo_ESQUERDA_black_white
+				j rosa_nao_valido_dois_baixo_ESQUERDA_black_white	
+				rosa_valido_dois_baixo_ESQUERDA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t4)
+				addi $s4, $s4, 4
+				li $t0, 1
+				sw $t0, indicador_white_pink
+				li $t0, 0
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_baixo_ESQUERDA_black_white:
+				
+				# branco preto 
+				curva_baixo_ESQUERDA_rosa_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, rosa_valido_dois_baixo_ESQUERDA_white_black
+				j rosa_nao_valido_dois_baixo_ESQUERDA_white_black	
+				rosa_valido_dois_baixo_ESQUERDA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s4)
+				lw $a3, color_pink
+				sw $a3, 0($t4)
+				add $s4, $s4, 4
+				sw $zero, indicador_white_pink
+				li $t0, 5
+				sw $t0, ultima_direcao_pink
+				j end_fantasma_rosa
+				rosa_nao_valido_dois_baixo_ESQUERDA_white_black:
+				
+		curva_baixo_direita_rosa:
+	
 	j end_fantasma_rosa
 	
 	tres_movimentos_possiveis_rosa:
