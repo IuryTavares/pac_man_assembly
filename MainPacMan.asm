@@ -121,7 +121,9 @@ main:
 	sw $a3, 5744($a0)
 	sw $a3, 5164($a0)
 	sw $a3, 5196($a0)
-	sw $a3, 5232($a0)
+	#sw $a3, 4460($a0)
+	#sw $a3, 5128($a0)
+	#sw $a3, 4720($a0)
 	
 	jal paint_stage_text
 
@@ -137,7 +139,7 @@ main:
 		jal checar_colisao_fantasma
 		jal movimentar_fantasma_vermelho
 		jal movimentar_fantasma_laranja
-		jal movimentar_fantasma_azul
+		jal movimentar_fantasma_ciano
 		jal movimentar_fantasma_rosa
 		beq $v0, 1, wait_2
 		beq $s7, 20, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
@@ -2974,6 +2976,7 @@ resetar_labirinto:
 jr $ra
 
 movimentar_fantasma_vermelho:
+	li $t9, 0
 	li $t0, 0 # conta a quantidade de movimentos válidos
 	
 	###### 1º parte, contando movimentos possíveis ######
@@ -2992,6 +2995,7 @@ movimentar_fantasma_vermelho:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_cima_red # fantasma rosa acima
 	addi $t0, $t0, 1
+	addi $t9, $t9, 1
 	invalido_cima_red:
 	
 	lw $a2, 0($t2)		
@@ -3004,6 +3008,7 @@ movimentar_fantasma_vermelho:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_esquerda_red # fantasma rosa a esquerda
 	addi $t0, $t0, 1
+	addi $t9, $t9, 2
 	invalido_esquerda_red:
 	
 	lw $a2, 0($t3)	
@@ -3016,6 +3021,7 @@ movimentar_fantasma_vermelho:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_baixo_red # fantasma rosa abaixo
 	addi $t0, $t0, 1
+	addi $t9, $t9, 3
 	invalido_baixo_red:
 	
 	lw $a2, 0($t4)	
@@ -3028,6 +3034,7 @@ movimentar_fantasma_vermelho:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_direita_red # fantasma rosa a direita
 	addi $t0, $t0, 1
+	addi $t9, $t9, 5
 	invalido_direita_red:
 	
 	### 2º parte, segue para os calculos de movimentação ###
@@ -3039,7 +3046,7 @@ movimentar_fantasma_vermelho:
 	
 	# permanece na mesma posição
 	nenhum_movimento_possivel_red: 
-	j end_fantasma_vermelho
+	j end_fantasma_red
 	
 	# calcula qual a direção e se movimento nela
 	um_movimento_possivel_red:
@@ -3049,221 +3056,959 @@ movimentar_fantasma_vermelho:
 		
 		###### MOVIMENTO ÚNICO, PIXEL PRETO PARA PIXEL PRETO #########
 		lw $a3, color_black
-		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_cima_black	# se for preto, efetuamos o movimento
 		j red_nao_valido_um_cima_black		# senão, checamos a proxima direção	
 		red_valido_um_cima_black:
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica preto
+		sw $a3, 0($s1)		# posição atual do fantasma red fica preto
 		lw $a3, color_red
-		sw $a3, 0($t1)		# próxima posição do fantasma vermelho fica vermelho
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t1)		# próxima posição do fantasma red fica red
+		sub $s1, $s1, 256	# salvo a nova posição do fantasma red em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 1
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_cima_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_esquerda_black	 # se for preto, efetuamos o movimento
 		j red_nao_valido_um_esquerda_black		# senão, checamos a proxima direção	
 		red_valido_um_esquerda_black:
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica preto
+		sw $a3, 0($s1)		# posição atual do fantasma red fica preto
 		lw $a3, color_red
-		sw $a3, 0($t2)		# próxima posição do fantasma vermelho fica vermelho
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t2)		# próxima posição do fantasma red fica red
+		sub $s1, $s1, 4		# salvo a nova posição do fantasma red em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 2
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_esquerda_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_baixo_black	 # se for preto, efetuamos o movimento
 		j red_nao_valido_um_baixo_black		# senão, checamos a proxima direção	
 		red_valido_um_baixo_black:
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica preto
+		sw $a3, 0($s1)		# posição atual do fantasma red fica preto
 		lw $a3, color_red
-		sw $a3, 0($t3)		# próxima posição do fantasma vermelho fica vermelho
-		addi $s1, $s1, 256	# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t3)		# próxima posição do fantasma red fica red
+		addi $s1, $s1, 256	# salvo a nova posição do fantasma red em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 3
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_baixo_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_direita_black	 # se for preto, efetuamos o movimento
 		j red_nao_valido_um_direita_black		# senão, checamos a proxima direção	
 		red_valido_um_direita_black:
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica preto
+		sw $a3, 0($s1)		# posição atual do fantasma red fica preto
 		lw $a3, color_red
-		sw $a3, 0($t4)		# próxima posição do fantasma vermelho fica vermelho
-		addi $s1, $s1, 4	# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t4)		# próxima posição do fantasma red fica red
+		addi $s1, $s1, 4	# salvo a nova posição do fantasma red em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_direita_black:
 		
 		###### MOVIMENTO ÚNICO,  PIXEL PRETO PARA PIXEL BRANCO ######### o fantasma está num quadrado preto e se move em direção a um branco
 		lw $a3, color_white
-		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_cima_white	# se for preto, efetuamos o movimento
 		j red_nao_valido_um_cima_white		# senão, checamos a proxima direção	
 		red_valido_um_cima_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica pintada de branco
+		sw $a3, 0($s1)		# posição atual do fantasma red fica pintada de branco
 		lw $a3, color_red
-		sw $a3, 0($t1)		# próxima posição do fantasma vermelho fica vermelho
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t1)		# próxima posição do fantasma red fica red
+		sub $s1, $s1, 256	# salvo a nova posição do fantasma red em $s1
 		li $t0, 1
 		sw $t0, indicador_white_red	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 1
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_cima_white:
 		
 		lw $a3, color_white
-		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_esquerda_white	# se for preto, efetuamos o movimento
 		j red_nao_valido_um_esquerda_white		# senão, checamos a proxima direção	
 		red_valido_um_esquerda_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica pintada de branco
+		sw $a3, 0($s1)		# posição atual do fantasma red fica pintada de branco
 		lw $a3, color_red
-		sw $a3, 0($t2)		# próxima posição do fantasma vermelho fica vermelho
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t2)		# próxima posição do fantasma red fica red
+		sub $s1, $s1, 4		# salvo a nova posição do fantasma red em $s1
 		li $t0, 1
 		sw $t0, indicador_white_red	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 2
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_esquerda_white:
 		
 		lw $a3, color_white
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_baixo_white	# se for preto, efetuamos o movimento
 		j red_nao_valido_um_baixo_white		# senão, checamos a proxima direção	
 		red_valido_um_baixo_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica pintada de branco
+		sw $a3, 0($s1)		# posição atual do fantasma red fica pintada de branco
 		lw $a3, color_red
-		sw $a3, 0($t3)		# próxima posição do fantasma vermelho fica vermelho
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t3)		# próxima posição do fantasma red fica red
+		addi $s1, $s1, 256		# salvo a nova posição do fantasma red em $s1
 		li $t0, 1
 		sw $t0, indicador_white_red	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 3
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_baixo_white:
 		
 		lw $a3, color_white
-		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_direita_white	# se for preto, efetuamos o movimento
 		j red_nao_valido_um_direita_white		# senão, checamos a proxima direção	
 		red_valido_um_direita_white:
 		lw $a3, color_black
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica pintada de branco
+		sw $a3, 0($s1)		# posição atual do fantasma red fica pintada de branco
 		lw $a3, color_red
-		sw $a3, 0($t4)		# próxima posição do fantasma vermelho fica vermelho
-		addi $s1, $s1, 4		# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t4)		# próxima posição do fantasma red fica red
+		addi $s1, $s1, 4		# salvo a nova posição do fantasma red em $s1
 		li $t0, 1
 		sw $t0, indicador_white_red	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_direita_white:
 		
 		red_um_movimento_WHITE_BLACK: # label indicador de movimento de pixel branco para pixel preto
 		###### MOVIMENTO ÚNICO,  PIXEL BRANCO PARA PIXEL PRETO ######### o fantasma está num quadrado branco e se move em direção a um preto
 		lw $a3, color_black
-		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_cima_white_black	# se for preto, efetuamos o movimento
 		j red_nao_valido_um_cima_white_black		# senão, checamos a proxima direção	
 		red_valido_um_cima_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica preto
+		sw $a3, 0($s1)		# posição atual do fantasma red fica preto
 		lw $a3, color_red
-		sw $a3, 0($t1)		# próxima posição do fantasma vermelho fica vermelho
-		sub $s1, $s1, 256	# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t1)		# próxima posição do fantasma red fica red
+		sub $s1, $s1, 256	# salvo a nova posição do fantasma red em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 1
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_cima_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_esquerda_white_black	# se for preto, efetuamos o movimento
 		j red_nao_valido_um_esquerda_white_black		# senão, checamos a proxima direção	
 		red_valido_um_esquerda_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica preto
+		sw $a3, 0($s1)		# posição atual do fantasma red fica preto
 		lw $a3, color_red
-		sw $a3, 0($t2)		# próxima posição do fantasma vermelho fica vermelho
-		sub $s1, $s1, 4		# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t2)		# próxima posição do fantasma red fica red
+		sub $s1, $s1, 4		# salvo a nova posição do fantasma red em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 2
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_esquerda_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_baixo_white_black	# se for preto, efetuamos o movimento
 		j red_nao_valido_um_baixo_white_black		# senão, checamos a proxima direção	
 		red_valido_um_baixo_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica preto
+		sw $a3, 0($s1)		# posição atual do fantasma red fica preto
 		lw $a3, color_red
-		sw $a3, 0($t3)		# próxima posição do fantasma vermelho fica vermelho
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t3)		# próxima posição do fantasma red fica red
+		addi $s1, $s1, 256		# salvo a nova posição do fantasma red em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 3
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_baixo_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma vermelho
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma red
 		beq $a3, $a2, red_valido_um_direita_white_black	# se for preto, efetuamos o movimento
 		j red_nao_valido_um_direita_white_black		# senão, checamos a proxima direção	
 		red_valido_um_direita_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s1)		# posição atual do fantasma vermelho fica preto
+		sw $a3, 0($s1)		# posição atual do fantasma red fica preto
 		lw $a3, color_red
-		sw $a3, 0($t3)		# próxima posição do fantasma vermelho fica vermelho
-		addi $s1, $s1, 256		# salvo a nova posição do fantasma vermelho em $s1
+		sw $a3, 0($t4)		# próxima posição do fantasma red fica red
+		addi $s1, $s1, 4		# salvo a nova posição do fantasma red em $s1
 		sw $zero, indicador_white_red	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_red
-		j end_fantasma_vermelho	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_red	# passamos a checar o movimento do próximo fantasma
 		red_nao_valido_um_direita_white_black:
-	j end_fantasma_vermelho
+	j end_fantasma_red
+	
 	
 	dois_movimentos_possiveis_red:
-	j end_fantasma_vermelho
+		# checa o tipo do movimento
+		beq $t9, 7, corredor_horizontal_red
+		beq $t9, 4, corredor_vertical_red
+		beq $t9, 3, curva_cima_esquerda_red
+		beq $t9, 6, curva_cima_direita_red
+		beq $t9, 5, curva_baixo_esquerda_red
+		beq $t9, 8, curva_baixo_direita_red
+		
+		# MOVIMENTO EM LINHA RETA - continua o movimento anterior
+		corredor_horizontal_red:
+			lw $t0, ultima_direcao_red
+			sub $t9, $t9, $t0
+			beq $t9, 5, esquerda_corredor_horizontal_red
+			beq $t9, 2, direita_corredor_horizontal_red
+			esquerda_corredor_horizontal_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, esquerda_corredor_horizontal_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, red_valido_dois_esquerda_black_black
+				j red_nao_valido_dois_esquerda_black_black	
+				red_valido_dois_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t2)
+				sub $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 2
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, red_valido_dois_esquerda_black_white
+				j red_nao_valido_dois_esquerda_black_white	
+				red_valido_dois_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t2)
+				sub $s1, $s1, 4
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 2
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_esquerda_black_white:
+				
+				# branco preto 
+				esquerda_corredor_horizontal_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, red_valido_dois_esquerda_white_black
+				j red_nao_valido_dois_esquerda_white_black	
+				red_valido_dois_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t2)
+				sub $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 2
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_esquerda_white_black:
+				
+			direita_corredor_horizontal_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, direita_corredor_horizontal_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, red_valido_dois_direita_black_black
+				j red_nao_valido_dois_direita_black_black	
+				red_valido_dois_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t4)
+				addi $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 5
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, red_valido_dois_direita_black_white
+				j red_nao_valido_dois_direita_black_white	
+				red_valido_dois_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t4)
+				addi $s1, $s1, 4
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 5
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_direita_black_white:
+				
+				# branco preto 
+				direita_corredor_horizontal_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, red_valido_dois_direita_white_black
+				j red_nao_valido_dois_direita_white_black	
+				red_valido_dois_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t4)
+				addi $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 5
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_direita_white_black:
+		j end_fantasma_red
+		
+		corredor_vertical_red:
+			lw $t0, ultima_direcao_red
+			sub $t9, $t9, $t0
+			beq $t9, 3, cima_corredor_vertical_red
+			beq $t9, 1, baixo_corredor_vertical_red
+			cima_corredor_vertical_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, cima_corredor_vertical_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, red_valido_dois_cima_black_black
+				j red_nao_valido_dois_cima_black_black	
+				red_valido_dois_cima_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t1)
+				sub $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 1
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_cima_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, red_valido_dois_cima_black_white
+				j red_nao_valido_dois_cima_black_white	
+				red_valido_dois_cima_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t1)
+				sub $s1, $s1, 256
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 1
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_cima_black_white:
+				
+				# branco preto 
+				cima_corredor_vertical_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, red_valido_dois_cima_white_black
+				j red_nao_valido_dois_cima_white_black	
+				red_valido_dois_cima_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t1)
+				sub $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 1
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_cima_white_black:
+				
+			baixo_corredor_vertical_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, baixo_corredor_vertical_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, red_valido_dois_baixo_black_black
+				j red_nao_valido_dois_baixo_black_black	
+				red_valido_dois_baixo_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t3)
+				addi $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 3
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_baixo_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t3)		
+				beq $a3, $a2, red_valido_dois_baixo_black_white
+				j red_nao_valido_dois_baixo_black_white	
+				red_valido_dois_baixo_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t3)
+				addi $s1, $s1, 256
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 3
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_baixo_black_white:
+				
+				# branco preto 
+				baixo_corredor_vertical_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, red_valido_dois_baixo_white_black
+				j red_nao_valido_dois_baixo_white_black	
+				red_valido_dois_baixo_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t3)
+				addi $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 3
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_baixo_white_black:
+		#MOVIMENTO EM CURVA
+		curva_cima_esquerda_red:
+			lw $t0, ultima_direcao_red
+			sub $t9, $t9, $t0
+			beq $t9, -2, curva_CIMA_esquerda_red
+			beq $t9, 0, curva_cima_ESQUERDA_red
+			j curva_cima_ESQUERDA_red
+			curva_CIMA_esquerda_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, curva_CIMA_esquerda_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, red_valido_dois_CIMA_esquerda_black_black
+				j red_nao_valido_dois_CIMA_esquerda_black_black	
+				red_valido_dois_CIMA_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t1)
+				sub $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 1
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_CIMA_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, red_valido_dois_CIMA_esquerda_black_white
+				j red_nao_valido_dois_CIMA_esquerda_black_white	
+				red_valido_dois_CIMA_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t1)
+				sub $s1, $s1, 256
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 1
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_CIMA_esquerda_black_white:
+				
+				# branco preto 
+				curva_CIMA_esquerda_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, red_valido_dois_CIMA_esquerda_white_black
+				j red_nao_valido_dois_CIMA_esquerda_white_black	
+				red_valido_dois_CIMA_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t1)
+				sub $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 1
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_CIMA_esquerda_white_black:	
+				
+			curva_cima_ESQUERDA_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, curva_cima_ESQUERDA_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, red_valido_dois_cima_ESQUERDA_black_black
+				j red_nao_valido_dois_cima_ESQUERDA_black_black	
+				red_valido_dois_cima_ESQUERDA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t2)
+				sub $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 2
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_cima_ESQUERDA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, red_valido_dois_cima_ESQUERDA_black_white
+				j red_nao_valido_dois_cima_ESQUERDA_black_white	
+				red_valido_dois_cima_ESQUERDA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t2)
+				sub $s1, $s1, 4
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 2
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_cima_ESQUERDA_black_white:
+				
+				# branco preto 
+				curva_cima_ESQUERDA_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, red_valido_dois_cima_ESQUERDA_white_black
+				j red_nao_valido_dois_cima_ESQUERDA_white_black	
+				red_valido_dois_cima_ESQUERDA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t2)
+				sub $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 2
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_cima_ESQUERDA_white_black:
+				
+		curva_cima_direita_red:
+			lw $t0, ultima_direcao_red
+			sub $t9, $t9, $t0
+			beq $t9, 4, curva_CIMA_direita_red
+			beq $t9, 3, curva_cima_DIREITA_red
+			curva_CIMA_direita_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, curva_CIMA_direita_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, red_valido_dois_CIMA_direita_black_black
+				j red_nao_valido_dois_CIMA_direita_black_black	
+				red_valido_dois_CIMA_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t1)
+				sub $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 1
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_CIMA_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, red_valido_dois_CIMA_direita_black_white
+				j red_nao_valido_dois_CIMA_direita_black_white	
+				red_valido_dois_CIMA_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t1)
+				sub $s1, $s1, 256
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 1
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_CIMA_direita_black_white:
+				
+				# branco preto 
+				curva_CIMA_direita_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, red_valido_dois_CIMA_direita_white_black
+				j red_nao_valido_dois_CIMA_direita_white_black	
+				red_valido_dois_CIMA_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t1)
+				sub $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 1
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_CIMA_direita_white_black:	
+				
+			curva_cima_DIREITA_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, curva_cima_DIREITA_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, red_valido_dois_cima_DIREITA_black_black
+				j red_nao_valido_dois_cima_DIREITA_black_black	
+				red_valido_dois_cima_DIREITA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t4)
+				addi $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 5
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_cima_DIREITA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, red_valido_dois_cima_DIREITA_black_white
+				j red_nao_valido_dois_cima_DIREITA_black_white	
+				red_valido_dois_cima_DIREITA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t4)
+				addi $s1, $s1, 4
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 5
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_cima_DIREITA_black_white:
+				
+				# branco preto 
+				curva_cima_DIREITA_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, red_valido_dois_cima_DIREITA_white_black
+				j red_nao_valido_dois_cima_DIREITA_white_black	
+				red_valido_dois_cima_DIREITA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t4)
+				addi $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 5
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_cima_DIREITA_white_black:
+				
+		curva_baixo_esquerda_red:
+			lw $t0, ultima_direcao_red
+			sub $t9, $t9, $t0
+			beq $t9, 0, curva_BAIXO_esquerda_red
+			beq $t9, 4, curva_baixo_ESQUERDA_red
+			curva_BAIXO_esquerda_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, curva_BAIXO_esquerda_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, red_valido_dois_BAIXO_esquerda_black_black
+				j red_nao_valido_dois_BAIXO_esquerda_black_black	
+				red_valido_dois_BAIXO_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t3)
+				addi $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 3
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_BAIXO_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t3)		
+				beq $a3, $a2, red_valido_dois_BAIXO_esquerda_black_white
+				j red_nao_valido_dois_BAIXO_esquerda_black_white	
+				red_valido_dois_BAIXO_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t3)
+				addi $s1, $s1, 256
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 3
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_BAIXO_esquerda_black_white:
+				
+				# branco preto 
+				curva_BAIXO_esquerda_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, red_valido_dois_BAIXO_esquerda_white_black
+				j red_nao_valido_dois_BAIXO_esquerda_white_black	
+				red_valido_dois_BAIXO_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t3)
+				addi $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 3
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_BAIXO_esquerda_white_black:	
+				
+			curva_baixo_ESQUERDA_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, curva_baixo_ESQUERDA_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, red_valido_dois_baixo_ESQUERDA_black_black
+				j red_nao_valido_dois_baixo_ESQUERDA_black_black	
+				red_valido_dois_baixo_ESQUERDA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t2)
+				sub $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 2
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_baixo_ESQUERDA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, red_valido_dois_baixo_ESQUERDA_black_white
+				j red_nao_valido_dois_baixo_ESQUERDA_black_white	
+				red_valido_dois_baixo_ESQUERDA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t2)
+				sub $s1, $s1, 4
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 2
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_baixo_ESQUERDA_black_white:
+				
+				# branco preto 
+				curva_baixo_ESQUERDA_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, red_valido_dois_baixo_ESQUERDA_white_black
+				j red_nao_valido_dois_baixo_ESQUERDA_white_black	
+				red_valido_dois_baixo_ESQUERDA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t2)
+				sub $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 2
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_baixo_ESQUERDA_white_black:
+				
+		curva_baixo_direita_red:
+			lw $t0, ultima_direcao_red
+			sub $t9, $t9, $t0
+			beq $t9, 6, curva_BAIXO_direita_red
+			beq $t9, 7, curva_baixo_DIREITA_red
+			curva_BAIXO_direita_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, curva_BAIXO_direita_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, red_valido_dois_BAIXO_direita_black_black
+				j red_nao_valido_dois_BAIXO_direita_black_black	
+				red_valido_dois_BAIXO_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t3)
+				addi $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 3
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_BAIXO_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t3)		
+				beq $a3, $a2, red_valido_dois_BAIXO_direita_black_white
+				j red_nao_valido_dois_BAIXO_direita_black_white	
+				red_valido_dois_BAIXO_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t3)
+				addi $s1, $s1, 256
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 3
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_BAIXO_direita_black_white:
+				
+				# branco preto 
+				curva_BAIXO_direita_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, red_valido_dois_BAIXO_direita_white_black
+				j red_nao_valido_dois_BAIXO_direita_white_black	
+				red_valido_dois_BAIXO_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t3)
+				addi $s1, $s1, 256
+				sw $zero, indicador_white_red
+				li $t0, 3
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_BAIXO_direita_white_black:	
+				
+			curva_baixo_DIREITA_red:
+				lw $t0, indicador_white_red
+				beq $t0, 1, curva_baixo_DIREITA_red_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, red_valido_dois_baixo_DIREITA_black_black
+				j red_nao_valido_dois_baixo_DIREITA_black_black	
+				red_valido_dois_baixo_DIREITA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t4)
+				addi $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 5
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_baixo_DIREITA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, red_valido_dois_baixo_DIREITA_black_white
+				j red_nao_valido_dois_baixo_DIREITA_black_white	
+				red_valido_dois_baixo_DIREITA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t4)
+				addi $s1, $s1, 4
+				li $t0, 1
+				sw $t0, indicador_white_red
+				li $t0, 5
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_baixo_DIREITA_black_white:
+				
+				# branco preto 
+				curva_baixo_DIREITA_red_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, red_valido_dois_baixo_DIREITA_white_black
+				j red_nao_valido_dois_baixo_DIREITA_white_black	
+				red_valido_dois_baixo_DIREITA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s1)
+				lw $a3, color_red
+				sw $a3, 0($t4)
+				addi $s1, $s1, 4
+				sw $zero, indicador_white_red
+				li $t0, 5
+				sw $t0, ultima_direcao_red
+				j end_fantasma_red
+				red_nao_valido_dois_baixo_DIREITA_white_black:
+	j end_fantasma_red
 	
 	tres_movimentos_possiveis_red:
-	j end_fantasma_vermelho
+	j end_fantasma_red
 
 	quatro_movimentos_possiveis_red:
-	j end_fantasma_vermelho
+	j end_fantasma_red
 	
-	end_fantasma_vermelho:
+	end_fantasma_red:
 jr $ra
 	
 movimentar_fantasma_laranja:
+	li $t9, 0
 	li $t0, 0 # conta a quantidade de movimentos válidos
 	
 	###### 1º parte, contando movimentos possíveis ######
-	sub $t1, $s2, 256	# endereço fantasma laranja acima
-	sub $t2, $s2, 4		# endereço fantasma laranja esquerda
-	addi $t3, $s2, 256	# endereço fantasma laranja abaixo
-	addi $t4, $s2, 4	# endereço fantasma laranja direita
+	sub $t1, $s2, 256	# endereço fantasma orange acima
+	sub $t2, $s2, 4		# endereço fantasma orange esquerda
+	addi $t3, $s2, 256	# endereço fantasma orange abaixo
+	addi $t4, $s2, 4	# endereço fantasma orange direita
 	
 	lw $a2, 0($t1)	
 	lw $a3, color_blue
@@ -3275,6 +4020,7 @@ movimentar_fantasma_laranja:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_cima_orange # fantasma rosa acima
 	addi $t0, $t0, 1
+	addi $t9, $t9, 1
 	invalido_cima_orange:
 	
 	lw $a2, 0($t2)		
@@ -3287,6 +4033,7 @@ movimentar_fantasma_laranja:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_esquerda_orange # fantasma rosa a esquerda
 	addi $t0, $t0, 1
+	addi $t9, $t9, 2
 	invalido_esquerda_orange:
 	
 	lw $a2, 0($t3)	
@@ -3299,6 +4046,7 @@ movimentar_fantasma_laranja:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_baixo_orange # fantasma rosa abaixo
 	addi $t0, $t0, 1
+	addi $t9, $t9, 3
 	invalido_baixo_orange:
 	
 	lw $a2, 0($t4)	
@@ -3311,6 +4059,7 @@ movimentar_fantasma_laranja:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_direita_orange # fantasma rosa a direita
 	addi $t0, $t0, 1
+	addi $t9, $t9, 5
 	invalido_direita_orange:
 	
 	### 2º parte, segue para os calculos de movimentação ###
@@ -3322,7 +4071,7 @@ movimentar_fantasma_laranja:
 	
 	# permanece na mesma posição
 	nenhum_movimento_possivel_orange: 
-	j end_fantasma_laranja
+	j end_fantasma_orange
 	
 	# calcula qual a direção e se movimento nela
 	um_movimento_possivel_orange:
@@ -3332,234 +4081,959 @@ movimentar_fantasma_laranja:
 		
 		###### MOVIMENTO ÚNICO, PIXEL PRETO PARA PIXEL PRETO #########
 		lw $a3, color_black
-		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_cima_black	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_cima_black		# senão, checamos a proxima direção	
 		orange_valido_um_cima_black:
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica preto
 		lw $a3, color_orange
-		sw $a3, 0($t1)		# próxima posição do fantasma laranja fica laranja
-		sub $s2, $s2, 256	# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t1)		# próxima posição do fantasma orange fica orange
+		sub $s2, $s2, 256	# salvo a nova posição do fantasma orange em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 1
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_cima_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_esquerda_black	 # se for preto, efetuamos o movimento
 		j orange_nao_valido_um_esquerda_black		# senão, checamos a proxima direção	
 		orange_valido_um_esquerda_black:
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica preto
 		lw $a3, color_orange
-		sw $a3, 0($t2)		# próxima posição do fantasma laranja fica laranja
-		sub $s2, $s2, 4		# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t2)		# próxima posição do fantasma orange fica orange
+		sub $s2, $s2, 4		# salvo a nova posição do fantasma orange em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 2
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_esquerda_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_baixo_black	 # se for preto, efetuamos o movimento
 		j orange_nao_valido_um_baixo_black		# senão, checamos a proxima direção	
 		orange_valido_um_baixo_black:
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica preto
 		lw $a3, color_orange
-		sw $a3, 0($t3)		# próxima posição do fantasma laranja fica laranja
-		addi $s2, $s2, 256	# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t3)		# próxima posição do fantasma orange fica orange
+		addi $s2, $s2, 256	# salvo a nova posição do fantasma orange em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 3
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_baixo_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_direita_black	 # se for preto, efetuamos o movimento
 		j orange_nao_valido_um_direita_black		# senão, checamos a proxima direção	
 		orange_valido_um_direita_black:
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica preto
 		lw $a3, color_orange
-		sw $a3, 0($t4)		# próxima posição do fantasma laranja fica laranja
-		addi $s2, $s2, 4	# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t4)		# próxima posição do fantasma orange fica orange
+		addi $s2, $s2, 4	# salvo a nova posição do fantasma orange em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_direita_black:
 		
 		###### MOVIMENTO ÚNICO,  PIXEL PRETO PARA PIXEL BRANCO ######### o fantasma está num quadrado preto e se move em direção a um branco
 		lw $a3, color_white
-		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_cima_white	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_cima_white		# senão, checamos a proxima direção	
 		orange_valido_um_cima_white:
 		lw $a3, color_black
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica pintada de branco
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica pintada de branco
 		lw $a3, color_orange
-		sw $a3, 0($t1)		# próxima posição do fantasma laranja fica laranja
-		sub $s2, $s2, 256	# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t1)		# próxima posição do fantasma orange fica orange
+		sub $s2, $s2, 256	# salvo a nova posição do fantasma orange em $s2
 		li $t0, 1
 		sw $t0, indicador_white_orange	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 1
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_cima_white:
 		
 		lw $a3, color_white
-		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_esquerda_white	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_esquerda_white		# senão, checamos a proxima direção	
 		orange_valido_um_esquerda_white:
 		lw $a3, color_black
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica pintada de branco
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica pintada de branco
 		lw $a3, color_orange
-		sw $a3, 0($t2)		# próxima posição do fantasma laranja fica laranja
-		sub $s2, $s2, 4		# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t2)		# próxima posição do fantasma orange fica orange
+		sub $s2, $s2, 4		# salvo a nova posição do fantasma orange em $s2
 		li $t0, 1
 		sw $t0, indicador_white_orange	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 2
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_esquerda_white:
 		
 		lw $a3, color_white
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_baixo_white	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_baixo_white		# senão, checamos a proxima direção	
 		orange_valido_um_baixo_white:
 		lw $a3, color_black
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica pintada de branco
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica pintada de branco
 		lw $a3, color_orange
-		sw $a3, 0($t3)		# próxima posição do fantasma laranja fica laranja
-		addi $s2, $s2, 256		# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t3)		# próxima posição do fantasma orange fica orange
+		addi $s2, $s2, 256		# salvo a nova posição do fantasma orange em $s2
 		li $t0, 1
 		sw $t0, indicador_white_orange	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 3
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_baixo_white:
 		
 		lw $a3, color_white
-		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_direita_white	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_direita_white		# senão, checamos a proxima direção	
 		orange_valido_um_direita_white:
 		lw $a3, color_black
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica pintada de branco
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica pintada de branco
 		lw $a3, color_orange
-		sw $a3, 0($t4)		# próxima posição do fantasma laranja fica laranja
-		addi $s2, $s2, 4		# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t4)		# próxima posição do fantasma orange fica orange
+		addi $s2, $s2, 4		# salvo a nova posição do fantasma orange em $s2
 		li $t0, 1
 		sw $t0, indicador_white_orange	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_direita_white:
 		
 		orange_um_movimento_WHITE_BLACK: # label indicador de movimento de pixel branco para pixel preto
 		###### MOVIMENTO ÚNICO,  PIXEL BRANCO PARA PIXEL PRETO ######### o fantasma está num quadrado branco e se move em direção a um preto
 		lw $a3, color_black
-		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_cima_white_black	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_cima_white_black		# senão, checamos a proxima direção	
 		orange_valido_um_cima_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica preto
 		lw $a3, color_orange
-		sw $a3, 0($t1)		# próxima posição do fantasma laranja fica laranja
-		sub $s2, $s2, 256	# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t1)		# próxima posição do fantasma orange fica orange
+		sub $s2, $s2, 256	# salvo a nova posição do fantasma orange em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 1
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_cima_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_esquerda_white_black	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_esquerda_white_black		# senão, checamos a proxima direção	
 		orange_valido_um_esquerda_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica preto
 		lw $a3, color_orange
-		sw $a3, 0($t2)		# próxima posição do fantasma laranja fica laranja
-		sub $s2, $s2, 4		# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t2)		# próxima posição do fantasma orange fica orange
+		sub $s2, $s2, 4		# salvo a nova posição do fantasma orange em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 2
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_esquerda_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_baixo_white_black	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_baixo_white_black		# senão, checamos a proxima direção	
 		orange_valido_um_baixo_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica preto
 		lw $a3, color_orange
-		sw $a3, 0($t3)		# próxima posição do fantasma laranja fica laranja
-		addi $s2, $s2, 256		# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t3)		# próxima posição do fantasma orange fica orange
+		addi $s2, $s2, 256		# salvo a nova posição do fantasma orange em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 3
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_baixo_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma laranja
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma orange
 		beq $a3, $a2, orange_valido_um_direita_white_black	# se for preto, efetuamos o movimento
 		j orange_nao_valido_um_direita_white_black		# senão, checamos a proxima direção	
 		orange_valido_um_direita_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s2)		# posição atual do fantasma laranja fica preto
+		sw $a3, 0($s2)		# posição atual do fantasma orange fica preto
 		lw $a3, color_orange
-		sw $a3, 0($t3)		# próxima posição do fantasma laranja fica laranja
-		addi $s2, $s2, 256		# salvo a nova posição do fantasma laranja em $s2
+		sw $a3, 0($t4)		# próxima posição do fantasma orange fica orange
+		addi $s2, $s2, 4		# salvo a nova posição do fantasma orange em $s2
 		sw $zero, indicador_white_orange	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_orange
-		j end_fantasma_laranja	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_orange	# passamos a checar o movimento do próximo fantasma
 		orange_nao_valido_um_direita_white_black:
-	j end_fantasma_laranja
+	j end_fantasma_orange
 	
-	# Se for um corredor: Checa o ultimo movimento efetuado e continua o movimento
-	# Se for uma curva: Muda o movimento para essa curva
-	#
-	# corredor: se os dois movimentos possíveis forem opostos
-	# curva: se os dois movimentos possíveis forem ortogonais entre si
 	dois_movimentos_possiveis_orange:
+		# checa o tipo do movimento
+		beq $t9, 7, corredor_horizontal_orange
+		beq $t9, 4, corredor_vertical_orange
+		beq $t9, 3, curva_cima_esquerda_orange
+		beq $t9, 6, curva_cima_direita_orange
+		beq $t9, 5, curva_baixo_esquerda_orange
+		beq $t9, 8, curva_baixo_direita_orange
 		
+		# MOVIMENTO EM LINHA RETA - continua o movimento anterior
+		corredor_horizontal_orange:
+			lw $t0, ultima_direcao_orange
+			sub $t9, $t9, $t0
+			beq $t9, 5, esquerda_corredor_horizontal_orange
+			beq $t9, 2, direita_corredor_horizontal_orange
+			esquerda_corredor_horizontal_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, esquerda_corredor_horizontal_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, orange_valido_dois_esquerda_black_black
+				j orange_nao_valido_dois_esquerda_black_black	
+				orange_valido_dois_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t2)
+				sub $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 2
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, orange_valido_dois_esquerda_black_white
+				j orange_nao_valido_dois_esquerda_black_white	
+				orange_valido_dois_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t2)
+				sub $s2, $s2, 4
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 2
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_esquerda_black_white:
+				
+				# branco preto 
+				esquerda_corredor_horizontal_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, orange_valido_dois_esquerda_white_black
+				j orange_nao_valido_dois_esquerda_white_black	
+				orange_valido_dois_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t2)
+				sub $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 2
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_esquerda_white_black:
+				
+			direita_corredor_horizontal_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, direita_corredor_horizontal_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, orange_valido_dois_direita_black_black
+				j orange_nao_valido_dois_direita_black_black	
+				orange_valido_dois_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t4)
+				addi $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 5
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, orange_valido_dois_direita_black_white
+				j orange_nao_valido_dois_direita_black_white	
+				orange_valido_dois_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t4)
+				addi $s2, $s2, 4
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 5
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_direita_black_white:
+				
+				# branco preto 
+				direita_corredor_horizontal_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, orange_valido_dois_direita_white_black
+				j orange_nao_valido_dois_direita_white_black	
+				orange_valido_dois_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t4)
+				addi $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 5
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_direita_white_black:
+		j end_fantasma_orange
 		
-		orange_corredor:
-		
-		j end_fantasma_laranja
-		orange_curva:
-		
-	j end_fantasma_laranja
+		corredor_vertical_orange:
+			lw $t0, ultima_direcao_orange
+			sub $t9, $t9, $t0
+			beq $t9, 3, cima_corredor_vertical_orange
+			beq $t9, 1, baixo_corredor_vertical_orange
+			cima_corredor_vertical_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, cima_corredor_vertical_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, orange_valido_dois_cima_black_black
+				j orange_nao_valido_dois_cima_black_black	
+				orange_valido_dois_cima_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t1)
+				sub $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 1
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_cima_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, orange_valido_dois_cima_black_white
+				j orange_nao_valido_dois_cima_black_white	
+				orange_valido_dois_cima_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t1)
+				sub $s2, $s2, 256
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 1
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_cima_black_white:
+				
+				# branco preto 
+				cima_corredor_vertical_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, orange_valido_dois_cima_white_black
+				j orange_nao_valido_dois_cima_white_black	
+				orange_valido_dois_cima_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t1)
+				sub $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 1
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_cima_white_black:
+				
+			baixo_corredor_vertical_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, baixo_corredor_vertical_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, orange_valido_dois_baixo_black_black
+				j orange_nao_valido_dois_baixo_black_black	
+				orange_valido_dois_baixo_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t3)
+				addi $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 3
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_baixo_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t3)		
+				beq $a3, $a2, orange_valido_dois_baixo_black_white
+				j orange_nao_valido_dois_baixo_black_white	
+				orange_valido_dois_baixo_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t3)
+				addi $s2, $s2, 256
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 3
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_baixo_black_white:
+				
+				# branco preto 
+				baixo_corredor_vertical_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, orange_valido_dois_baixo_white_black
+				j orange_nao_valido_dois_baixo_white_black	
+				orange_valido_dois_baixo_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t3)
+				addi $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 3
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_baixo_white_black:
+		#MOVIMENTO EM CURVA
+		curva_cima_esquerda_orange:
+			lw $t0, ultima_direcao_orange
+			sub $t9, $t9, $t0
+			beq $t9, -2, curva_CIMA_esquerda_orange
+			beq $t9, 0, curva_cima_ESQUERDA_orange
+			j curva_cima_ESQUERDA_orange
+			curva_CIMA_esquerda_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, curva_CIMA_esquerda_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, orange_valido_dois_CIMA_esquerda_black_black
+				j orange_nao_valido_dois_CIMA_esquerda_black_black	
+				orange_valido_dois_CIMA_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t1)
+				sub $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 1
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_CIMA_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, orange_valido_dois_CIMA_esquerda_black_white
+				j orange_nao_valido_dois_CIMA_esquerda_black_white	
+				orange_valido_dois_CIMA_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t1)
+				sub $s2, $s2, 256
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 1
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_CIMA_esquerda_black_white:
+				
+				# branco preto 
+				curva_CIMA_esquerda_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, orange_valido_dois_CIMA_esquerda_white_black
+				j orange_nao_valido_dois_CIMA_esquerda_white_black	
+				orange_valido_dois_CIMA_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t1)
+				sub $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 1
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_CIMA_esquerda_white_black:	
+				
+			curva_cima_ESQUERDA_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, curva_cima_ESQUERDA_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, orange_valido_dois_cima_ESQUERDA_black_black
+				j orange_nao_valido_dois_cima_ESQUERDA_black_black	
+				orange_valido_dois_cima_ESQUERDA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t2)
+				sub $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 2
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_cima_ESQUERDA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, orange_valido_dois_cima_ESQUERDA_black_white
+				j orange_nao_valido_dois_cima_ESQUERDA_black_white	
+				orange_valido_dois_cima_ESQUERDA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t2)
+				sub $s2, $s2, 4
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 2
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_cima_ESQUERDA_black_white:
+				
+				# branco preto 
+				curva_cima_ESQUERDA_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, orange_valido_dois_cima_ESQUERDA_white_black
+				j orange_nao_valido_dois_cima_ESQUERDA_white_black	
+				orange_valido_dois_cima_ESQUERDA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t2)
+				sub $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 2
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_cima_ESQUERDA_white_black:
+				
+		curva_cima_direita_orange:
+			lw $t0, ultima_direcao_orange
+			sub $t9, $t9, $t0
+			beq $t9, 4, curva_CIMA_direita_orange
+			beq $t9, 3, curva_cima_DIREITA_orange
+			curva_CIMA_direita_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, curva_CIMA_direita_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, orange_valido_dois_CIMA_direita_black_black
+				j orange_nao_valido_dois_CIMA_direita_black_black	
+				orange_valido_dois_CIMA_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t1)
+				sub $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 1
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_CIMA_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, orange_valido_dois_CIMA_direita_black_white
+				j orange_nao_valido_dois_CIMA_direita_black_white	
+				orange_valido_dois_CIMA_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t1)
+				sub $s2, $s2, 256
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 1
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_CIMA_direita_black_white:
+				
+				# branco preto 
+				curva_CIMA_direita_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, orange_valido_dois_CIMA_direita_white_black
+				j orange_nao_valido_dois_CIMA_direita_white_black	
+				orange_valido_dois_CIMA_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t1)
+				sub $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 1
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_CIMA_direita_white_black:	
+				
+			curva_cima_DIREITA_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, curva_cima_DIREITA_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, orange_valido_dois_cima_DIREITA_black_black
+				j orange_nao_valido_dois_cima_DIREITA_black_black	
+				orange_valido_dois_cima_DIREITA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t4)
+				addi $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 5
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_cima_DIREITA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, orange_valido_dois_cima_DIREITA_black_white
+				j orange_nao_valido_dois_cima_DIREITA_black_white	
+				orange_valido_dois_cima_DIREITA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t4)
+				addi $s2, $s2, 4
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 5
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_cima_DIREITA_black_white:
+				
+				# branco preto 
+				curva_cima_DIREITA_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, orange_valido_dois_cima_DIREITA_white_black
+				j orange_nao_valido_dois_cima_DIREITA_white_black	
+				orange_valido_dois_cima_DIREITA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t4)
+				addi $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 5
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_cima_DIREITA_white_black:
+				
+		curva_baixo_esquerda_orange:
+			lw $t0, ultima_direcao_orange
+			sub $t9, $t9, $t0
+			beq $t9, 0, curva_BAIXO_esquerda_orange
+			beq $t9, 4, curva_baixo_ESQUERDA_orange
+			curva_BAIXO_esquerda_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, curva_BAIXO_esquerda_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, orange_valido_dois_BAIXO_esquerda_black_black
+				j orange_nao_valido_dois_BAIXO_esquerda_black_black	
+				orange_valido_dois_BAIXO_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t3)
+				addi $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 3
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_BAIXO_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t3)		
+				beq $a3, $a2, orange_valido_dois_BAIXO_esquerda_black_white
+				j orange_nao_valido_dois_BAIXO_esquerda_black_white	
+				orange_valido_dois_BAIXO_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t3)
+				addi $s2, $s2, 256
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 3
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_BAIXO_esquerda_black_white:
+				
+				# branco preto 
+				curva_BAIXO_esquerda_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, orange_valido_dois_BAIXO_esquerda_white_black
+				j orange_nao_valido_dois_BAIXO_esquerda_white_black	
+				orange_valido_dois_BAIXO_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t3)
+				addi $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 3
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_BAIXO_esquerda_white_black:	
+				
+			curva_baixo_ESQUERDA_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, curva_baixo_ESQUERDA_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, orange_valido_dois_baixo_ESQUERDA_black_black
+				j orange_nao_valido_dois_baixo_ESQUERDA_black_black	
+				orange_valido_dois_baixo_ESQUERDA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t2)
+				sub $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 2
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_baixo_ESQUERDA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, orange_valido_dois_baixo_ESQUERDA_black_white
+				j orange_nao_valido_dois_baixo_ESQUERDA_black_white	
+				orange_valido_dois_baixo_ESQUERDA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t2)
+				sub $s2, $s2, 4
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 2
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_baixo_ESQUERDA_black_white:
+				
+				# branco preto 
+				curva_baixo_ESQUERDA_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, orange_valido_dois_baixo_ESQUERDA_white_black
+				j orange_nao_valido_dois_baixo_ESQUERDA_white_black	
+				orange_valido_dois_baixo_ESQUERDA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t2)
+				sub $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 2
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_baixo_ESQUERDA_white_black:
+				
+		curva_baixo_direita_orange:
+			lw $t0, ultima_direcao_orange
+			sub $t9, $t9, $t0
+			beq $t9, 6, curva_BAIXO_direita_orange
+			beq $t9, 7, curva_baixo_DIREITA_orange
+			curva_BAIXO_direita_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, curva_BAIXO_direita_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, orange_valido_dois_BAIXO_direita_black_black
+				j orange_nao_valido_dois_BAIXO_direita_black_black	
+				orange_valido_dois_BAIXO_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t3)
+				addi $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 3
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_BAIXO_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t3)		
+				beq $a3, $a2, orange_valido_dois_BAIXO_direita_black_white
+				j orange_nao_valido_dois_BAIXO_direita_black_white	
+				orange_valido_dois_BAIXO_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t3)
+				addi $s2, $s2, 256
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 3
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_BAIXO_direita_black_white:
+				
+				# branco preto 
+				curva_BAIXO_direita_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, orange_valido_dois_BAIXO_direita_white_black
+				j orange_nao_valido_dois_BAIXO_direita_white_black	
+				orange_valido_dois_BAIXO_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t3)
+				addi $s2, $s2, 256
+				sw $zero, indicador_white_orange
+				li $t0, 3
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_BAIXO_direita_white_black:	
+				
+			curva_baixo_DIREITA_orange:
+				lw $t0, indicador_white_orange
+				beq $t0, 1, curva_baixo_DIREITA_orange_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, orange_valido_dois_baixo_DIREITA_black_black
+				j orange_nao_valido_dois_baixo_DIREITA_black_black	
+				orange_valido_dois_baixo_DIREITA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t4)
+				addi $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 5
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_baixo_DIREITA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, orange_valido_dois_baixo_DIREITA_black_white
+				j orange_nao_valido_dois_baixo_DIREITA_black_white	
+				orange_valido_dois_baixo_DIREITA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t4)
+				addi $s2, $s2, 4
+				li $t0, 1
+				sw $t0, indicador_white_orange
+				li $t0, 5
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_baixo_DIREITA_black_white:
+				
+				# branco preto 
+				curva_baixo_DIREITA_orange_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, orange_valido_dois_baixo_DIREITA_white_black
+				j orange_nao_valido_dois_baixo_DIREITA_white_black	
+				orange_valido_dois_baixo_DIREITA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s2)
+				lw $a3, color_orange
+				sw $a3, 0($t4)
+				addi $s2, $s2, 4
+				sw $zero, indicador_white_orange
+				li $t0, 5
+				sw $t0, ultima_direcao_orange
+				j end_fantasma_orange
+				orange_nao_valido_dois_baixo_DIREITA_white_black:
+	j end_fantasma_orange
 	
 	tres_movimentos_possiveis_orange:
-	j end_fantasma_laranja
+	j end_fantasma_orange
 
 	quatro_movimentos_possiveis_orange:
-	j end_fantasma_laranja
+	j end_fantasma_orange
 	
-	end_fantasma_laranja:
+	end_fantasma_orange:
 jr $ra
 	
 	
-movimentar_fantasma_azul:
+movimentar_fantasma_ciano:
+	li $t9, 0
 	li $t0, 0 # conta a quantidade de movimentos válidos
 	
 	###### 1º parte, contando movimentos possíveis ######
-	sub $t1, $s3, 256	# endereço fantasma azul acima
-	sub $t2, $s3, 4		# endereço fantasma azul esquerda
-	addi $t3, $s3, 256	# endereço fantasma azul abaixo
-	addi $t4, $s3, 4	# endereço fantasma azul direita
+	sub $t1, $s3, 256	# endereço fantasma ciano acima
+	sub $t2, $s3, 4		# endereço fantasma ciano esquerda
+	addi $t3, $s3, 256	# endereço fantasma ciano abaixo
+	addi $t4, $s3, 4	# endereço fantasma ciano direita
 	
 	lw $a2, 0($t1)	
 	lw $a3, color_blue
@@ -3571,6 +5045,7 @@ movimentar_fantasma_azul:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_cima_blue # fantasma rosa acima
 	addi $t0, $t0, 1
+	addi $t9, $t9, 1
 	invalido_cima_blue:
 	
 	lw $a2, 0($t2)		
@@ -3583,6 +5058,7 @@ movimentar_fantasma_azul:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_esquerda_blue # fantasma rosa a esquerda
 	addi $t0, $t0, 1
+	addi $t9, $t9, 2
 	invalido_esquerda_blue:
 	
 	lw $a2, 0($t3)	
@@ -3595,6 +5071,7 @@ movimentar_fantasma_azul:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_baixo_blue # fantasma rosa abaixo
 	addi $t0, $t0, 1
+	addi $t9, $t9, 3
 	invalido_baixo_blue:
 	
 	lw $a2, 0($t4)	
@@ -3607,6 +5084,7 @@ movimentar_fantasma_azul:
 	lw $a3, color_pink	
 	beq $a3, $a2, invalido_direita_blue # fantasma rosa a direita
 	addi $t0, $t0, 1
+	addi $t9, $t9, 5
 	invalido_direita_blue:
 	
 	### 2º parte, segue para os calculos de movimentação ###
@@ -3618,7 +5096,7 @@ movimentar_fantasma_azul:
 	
 	# permanece na mesma posição
 	nenhum_movimento_possivel_ciano: 
-	j end_fantasma_azul
+	j end_fantasma_ciano
 	
 	# calcula qual a direção e se movimento nela
 	um_movimento_possivel_ciano:
@@ -3628,211 +5106,947 @@ movimentar_fantasma_azul:
 		
 		###### MOVIMENTO ÚNICO, PIXEL PRETO PARA PIXEL PRETO #########
 		lw $a3, color_black
-		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_cima_black	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_cima_black		# senão, checamos a proxima direção	
 		ciano_valido_um_cima_black:
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica preto
 		lw $a3, color_ciano
-		sw $a3, 0($t1)		# próxima posição do fantasma azul fica azul
-		sub $s3, $s3, 256	# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t1)		# próxima posição do fantasma ciano fica ciano
+		sub $s3, $s3, 256	# salvo a nova posição do fantasma ciano em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 1
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_cima_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_esquerda_black	 # se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_esquerda_black		# senão, checamos a proxima direção	
 		ciano_valido_um_esquerda_black:
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica preto
 		lw $a3, color_ciano
-		sw $a3, 0($t2)		# próxima posição do fantasma azul fica azul
-		sub $s3, $s3, 4		# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t2)		# próxima posição do fantasma ciano fica ciano
+		sub $s3, $s3, 4		# salvo a nova posição do fantasma ciano em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 2
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_esquerda_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_baixo_black	 # se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_baixo_black		# senão, checamos a proxima direção	
 		ciano_valido_um_baixo_black:
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica preto
 		lw $a3, color_ciano
-		sw $a3, 0($t3)		# próxima posição do fantasma azul fica azul
-		addi $s3, $s3, 256	# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t3)		# próxima posição do fantasma ciano fica ciano
+		addi $s3, $s3, 256	# salvo a nova posição do fantasma ciano em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 3
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_baixo_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_direita_black	 # se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_direita_black		# senão, checamos a proxima direção	
 		ciano_valido_um_direita_black:
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica preto
 		lw $a3, color_ciano
-		sw $a3, 0($t4)		# próxima posição do fantasma azul fica azul
-		addi $s3, $s3, 4	# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t4)		# próxima posição do fantasma ciano fica ciano
+		addi $s3, $s3, 4	# salvo a nova posição do fantasma ciano em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_direita_black:
 		
 		###### MOVIMENTO ÚNICO,  PIXEL PRETO PARA PIXEL BRANCO ######### o fantasma está num quadrado preto e se move em direção a um branco
 		lw $a3, color_white
-		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_cima_white	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_cima_white		# senão, checamos a proxima direção	
 		ciano_valido_um_cima_white:
 		lw $a3, color_black
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica pintada de branco
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica pintada de branco
 		lw $a3, color_ciano
-		sw $a3, 0($t1)		# próxima posição do fantasma azul fica azul
-		sub $s3, $s3, 256	# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t1)		# próxima posição do fantasma ciano fica ciano
+		sub $s3, $s3, 256	# salvo a nova posição do fantasma ciano em $s3
 		li $t0, 1
 		sw $t0, indicador_white_ciano	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 1
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_cima_white:
 		
 		lw $a3, color_white
-		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_esquerda_white	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_esquerda_white		# senão, checamos a proxima direção	
 		ciano_valido_um_esquerda_white:
 		lw $a3, color_black
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica pintada de branco
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica pintada de branco
 		lw $a3, color_ciano
-		sw $a3, 0($t2)		# próxima posição do fantasma azul fica azul
-		sub $s3, $s3, 4		# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t2)		# próxima posição do fantasma ciano fica ciano
+		sub $s3, $s3, 4		# salvo a nova posição do fantasma ciano em $s3
 		li $t0, 1
 		sw $t0, indicador_white_ciano	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 2
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_esquerda_white:
 		
 		lw $a3, color_white
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_baixo_white	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_baixo_white		# senão, checamos a proxima direção	
 		ciano_valido_um_baixo_white:
 		lw $a3, color_black
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica pintada de branco
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica pintada de branco
 		lw $a3, color_ciano
-		sw $a3, 0($t3)		# próxima posição do fantasma azul fica azul
-		addi $s3, $s3, 256		# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t3)		# próxima posição do fantasma ciano fica ciano
+		addi $s3, $s3, 256		# salvo a nova posição do fantasma ciano em $s3
 		li $t0, 1
 		sw $t0, indicador_white_ciano	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 3
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_baixo_white:
 		
 		lw $a3, color_white
-		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_direita_white	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_direita_white		# senão, checamos a proxima direção	
 		ciano_valido_um_direita_white:
 		lw $a3, color_black
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica pintada de branco
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica pintada de branco
 		lw $a3, color_ciano
-		sw $a3, 0($t4)		# próxima posição do fantasma azul fica azul
-		addi $s3, $s3, 4		# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t4)		# próxima posição do fantasma ciano fica ciano
+		addi $s3, $s3, 4		# salvo a nova posição do fantasma ciano em $s3
 		li $t0, 1
 		sw $t0, indicador_white_ciano	# indico que o movimento FOI sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_direita_white:
 		
 		ciano_um_movimento_WHITE_BLACK: # label indicador de movimento de pixel branco para pixel preto
 		###### MOVIMENTO ÚNICO,  PIXEL BRANCO PARA PIXEL PRETO ######### o fantasma está num quadrado branco e se move em direção a um preto
 		lw $a3, color_black
-		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t1)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_cima_white_black	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_cima_white_black		# senão, checamos a proxima direção	
 		ciano_valido_um_cima_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica preto
 		lw $a3, color_ciano
-		sw $a3, 0($t1)		# próxima posição do fantasma azul fica azul
-		sub $s3, $s3, 256	# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t1)		# próxima posição do fantasma ciano fica ciano
+		sub $s3, $s3, 256	# salvo a nova posição do fantasma ciano em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 1
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_cima_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t2)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_esquerda_white_black	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_esquerda_white_black		# senão, checamos a proxima direção	
 		ciano_valido_um_esquerda_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica preto
 		lw $a3, color_ciano
-		sw $a3, 0($t2)		# próxima posição do fantasma azul fica azul
-		sub $s3, $s3, 4		# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t2)		# próxima posição do fantasma ciano fica ciano
+		sub $s3, $s3, 4		# salvo a nova posição do fantasma ciano em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 2
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_esquerda_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_baixo_white_black	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_baixo_white_black		# senão, checamos a proxima direção	
 		ciano_valido_um_baixo_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica preto
 		lw $a3, color_ciano
-		sw $a3, 0($t3)		# próxima posição do fantasma azul fica azul
-		addi $s3, $s3, 256		# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t3)		# próxima posição do fantasma ciano fica ciano
+		addi $s3, $s3, 256		# salvo a nova posição do fantasma ciano em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 3
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_baixo_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma azul
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma ciano
 		beq $a3, $a2, ciano_valido_um_direita_white_black	# se for preto, efetuamos o movimento
 		j ciano_nao_valido_um_direita_white_black		# senão, checamos a proxima direção	
 		ciano_valido_um_direita_white_black:
 		lw $a3, color_white
-		sw $a3, 0($s3)		# posição atual do fantasma azul fica preto
+		sw $a3, 0($s3)		# posição atual do fantasma ciano fica preto
 		lw $a3, color_ciano
-		sw $a3, 0($t3)		# próxima posição do fantasma azul fica azul
-		addi $s3, $s3, 256		# salvo a nova posição do fantasma azul em $s3
+		sw $a3, 0($t4)		# próxima posição do fantasma ciano fica ciano
+		addi $s3, $s3, 4		# salvo a nova posição do fantasma ciano em $s3
 		sw $zero, indicador_white_ciano	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_ciano
-		j end_fantasma_azul	# passamos a checar o movimento do próximo fantasma
+		j end_fantasma_ciano	# passamos a checar o movimento do próximo fantasma
 		ciano_nao_valido_um_direita_white_black:
-	j end_fantasma_azul
+	j end_fantasma_ciano
 	
 	dois_movimentos_possiveis_ciano:
-	j end_fantasma_azul
+		# checa o tipo do movimento
+		beq $t9, 7, corredor_horizontal_ciano
+		beq $t9, 4, corredor_vertical_ciano
+		beq $t9, 3, curva_cima_esquerda_ciano
+		beq $t9, 6, curva_cima_direita_ciano
+		beq $t9, 5, curva_baixo_esquerda_ciano
+		beq $t9, 8, curva_baixo_direita_ciano
+		
+		# MOVIMENTO EM LINHA RETA - continua o movimento anterior
+		corredor_horizontal_ciano:
+			lw $t0, ultima_direcao_ciano
+			sub $t9, $t9, $t0
+			beq $t9, 5, esquerda_corredor_horizontal_ciano
+			beq $t9, 2, direita_corredor_horizontal_ciano
+			esquerda_corredor_horizontal_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, esquerda_corredor_horizontal_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, ciano_valido_dois_esquerda_black_black
+				j ciano_nao_valido_dois_esquerda_black_black	
+				ciano_valido_dois_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t2)
+				sub $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 2
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, ciano_valido_dois_esquerda_black_white
+				j ciano_nao_valido_dois_esquerda_black_white	
+				ciano_valido_dois_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t2)
+				sub $s3, $s3, 4
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 2
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_esquerda_black_white:
+				
+				# branco preto 
+				esquerda_corredor_horizontal_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, ciano_valido_dois_esquerda_white_black
+				j ciano_nao_valido_dois_esquerda_white_black	
+				ciano_valido_dois_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t2)
+				sub $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 2
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_esquerda_white_black:
+				
+			direita_corredor_horizontal_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, direita_corredor_horizontal_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, ciano_valido_dois_direita_black_black
+				j ciano_nao_valido_dois_direita_black_black	
+				ciano_valido_dois_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t4)
+				addi $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 5
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, ciano_valido_dois_direita_black_white
+				j ciano_nao_valido_dois_direita_black_white	
+				ciano_valido_dois_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t4)
+				addi $s3, $s3, 4
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 5
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_direita_black_white:
+				
+				# branco preto 
+				direita_corredor_horizontal_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, ciano_valido_dois_direita_white_black
+				j ciano_nao_valido_dois_direita_white_black	
+				ciano_valido_dois_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t4)
+				addi $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 5
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_direita_white_black:
+		j end_fantasma_ciano
+		
+		corredor_vertical_ciano:
+			lw $t0, ultima_direcao_ciano
+			sub $t9, $t9, $t0
+			beq $t9, 3, cima_corredor_vertical_ciano
+			beq $t9, 1, baixo_corredor_vertical_ciano
+			cima_corredor_vertical_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, cima_corredor_vertical_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, ciano_valido_dois_cima_black_black
+				j ciano_nao_valido_dois_cima_black_black	
+				ciano_valido_dois_cima_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t1)
+				sub $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 1
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_cima_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, ciano_valido_dois_cima_black_white
+				j ciano_nao_valido_dois_cima_black_white	
+				ciano_valido_dois_cima_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t1)
+				sub $s3, $s3, 256
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 1
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_cima_black_white:
+				
+				# branco preto 
+				cima_corredor_vertical_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, ciano_valido_dois_cima_white_black
+				j ciano_nao_valido_dois_cima_white_black	
+				ciano_valido_dois_cima_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t1)
+				sub $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 1
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_cima_white_black:
+				
+			baixo_corredor_vertical_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, baixo_corredor_vertical_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, ciano_valido_dois_baixo_black_black
+				j ciano_nao_valido_dois_baixo_black_black	
+				ciano_valido_dois_baixo_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t3)
+				addi $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 3
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_baixo_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t3)		
+				beq $a3, $a2, ciano_valido_dois_baixo_black_white
+				j ciano_nao_valido_dois_baixo_black_white	
+				ciano_valido_dois_baixo_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t3)
+				addi $s3, $s3, 256
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 3
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_baixo_black_white:
+				
+				# branco preto 
+				baixo_corredor_vertical_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, ciano_valido_dois_baixo_white_black
+				j ciano_nao_valido_dois_baixo_white_black	
+				ciano_valido_dois_baixo_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t3)
+				addi $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 3
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_baixo_white_black:
+		#MOVIMENTO EM CURVA
+		curva_cima_esquerda_ciano:
+			lw $t0, ultima_direcao_ciano
+			sub $t9, $t9, $t0
+			beq $t9, -2, curva_CIMA_esquerda_ciano
+			beq $t9, 0, curva_cima_ESQUERDA_ciano
+			j curva_cima_ESQUERDA_ciano
+			curva_CIMA_esquerda_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, curva_CIMA_esquerda_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, ciano_valido_dois_CIMA_esquerda_black_black
+				j ciano_nao_valido_dois_CIMA_esquerda_black_black	
+				ciano_valido_dois_CIMA_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t1)
+				sub $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 1
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_CIMA_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, ciano_valido_dois_CIMA_esquerda_black_white
+				j ciano_nao_valido_dois_CIMA_esquerda_black_white	
+				ciano_valido_dois_CIMA_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t1)
+				sub $s3, $s3, 256
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 1
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_CIMA_esquerda_black_white:
+				
+				# branco preto 
+				curva_CIMA_esquerda_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, ciano_valido_dois_CIMA_esquerda_white_black
+				j ciano_nao_valido_dois_CIMA_esquerda_white_black	
+				ciano_valido_dois_CIMA_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t1)
+				sub $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 1
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_CIMA_esquerda_white_black:	
+				
+			curva_cima_ESQUERDA_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, curva_cima_ESQUERDA_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, ciano_valido_dois_cima_ESQUERDA_black_black
+				j ciano_nao_valido_dois_cima_ESQUERDA_black_black	
+				ciano_valido_dois_cima_ESQUERDA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t2)
+				sub $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 2
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_cima_ESQUERDA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, ciano_valido_dois_cima_ESQUERDA_black_white
+				j ciano_nao_valido_dois_cima_ESQUERDA_black_white	
+				ciano_valido_dois_cima_ESQUERDA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t2)
+				sub $s3, $s3, 4
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 2
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_cima_ESQUERDA_black_white:
+				
+				# branco preto 
+				curva_cima_ESQUERDA_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, ciano_valido_dois_cima_ESQUERDA_white_black
+				j ciano_nao_valido_dois_cima_ESQUERDA_white_black	
+				ciano_valido_dois_cima_ESQUERDA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t2)
+				sub $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 2
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_cima_ESQUERDA_white_black:
+				
+		curva_cima_direita_ciano:
+			lw $t0, ultima_direcao_ciano
+			sub $t9, $t9, $t0
+			beq $t9, 4, curva_CIMA_direita_ciano
+			beq $t9, 3, curva_cima_DIREITA_ciano
+			curva_CIMA_direita_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, curva_CIMA_direita_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, ciano_valido_dois_CIMA_direita_black_black
+				j ciano_nao_valido_dois_CIMA_direita_black_black	
+				ciano_valido_dois_CIMA_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t1)
+				sub $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 1
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_CIMA_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t1)		
+				beq $a3, $a2, ciano_valido_dois_CIMA_direita_black_white
+				j ciano_nao_valido_dois_CIMA_direita_black_white	
+				ciano_valido_dois_CIMA_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t1)
+				sub $s3, $s3, 256
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 1
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_CIMA_direita_black_white:
+				
+				# branco preto 
+				curva_CIMA_direita_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t1)		
+				beq $a3, $a2, ciano_valido_dois_CIMA_direita_white_black
+				j ciano_nao_valido_dois_CIMA_direita_white_black	
+				ciano_valido_dois_CIMA_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t1)
+				sub $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 1
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_CIMA_direita_white_black:	
+				
+			curva_cima_DIREITA_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, curva_cima_DIREITA_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, ciano_valido_dois_cima_DIREITA_black_black
+				j ciano_nao_valido_dois_cima_DIREITA_black_black	
+				ciano_valido_dois_cima_DIREITA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t4)
+				addi $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 5
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_cima_DIREITA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, ciano_valido_dois_cima_DIREITA_black_white
+				j ciano_nao_valido_dois_cima_DIREITA_black_white	
+				ciano_valido_dois_cima_DIREITA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t4)
+				addi $s3, $s3, 4
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 5
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_cima_DIREITA_black_white:
+				
+				# branco preto 
+				curva_cima_DIREITA_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, ciano_valido_dois_cima_DIREITA_white_black
+				j ciano_nao_valido_dois_cima_DIREITA_white_black	
+				ciano_valido_dois_cima_DIREITA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t4)
+				addi $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 5
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_cima_DIREITA_white_black:
+				
+		curva_baixo_esquerda_ciano:
+			lw $t0, ultima_direcao_ciano
+			sub $t9, $t9, $t0
+			beq $t9, 0, curva_BAIXO_esquerda_ciano
+			beq $t9, 4, curva_baixo_ESQUERDA_ciano
+			curva_BAIXO_esquerda_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, curva_BAIXO_esquerda_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, ciano_valido_dois_BAIXO_esquerda_black_black
+				j ciano_nao_valido_dois_BAIXO_esquerda_black_black	
+				ciano_valido_dois_BAIXO_esquerda_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t3)
+				addi $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 3
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_BAIXO_esquerda_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t3)		
+				beq $a3, $a2, ciano_valido_dois_BAIXO_esquerda_black_white
+				j ciano_nao_valido_dois_BAIXO_esquerda_black_white	
+				ciano_valido_dois_BAIXO_esquerda_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t3)
+				addi $s3, $s3, 256
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 3
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_BAIXO_esquerda_black_white:
+				
+				# branco preto 
+				curva_BAIXO_esquerda_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, ciano_valido_dois_BAIXO_esquerda_white_black
+				j ciano_nao_valido_dois_BAIXO_esquerda_white_black	
+				ciano_valido_dois_BAIXO_esquerda_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t3)
+				addi $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 3
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_BAIXO_esquerda_white_black:	
+				
+			curva_baixo_ESQUERDA_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, curva_baixo_ESQUERDA_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, ciano_valido_dois_baixo_ESQUERDA_black_black
+				j ciano_nao_valido_dois_baixo_ESQUERDA_black_black	
+				ciano_valido_dois_baixo_ESQUERDA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t2)
+				sub $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 2
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_baixo_ESQUERDA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t2)		
+				beq $a3, $a2, ciano_valido_dois_baixo_ESQUERDA_black_white
+				j ciano_nao_valido_dois_baixo_ESQUERDA_black_white	
+				ciano_valido_dois_baixo_ESQUERDA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t2)
+				sub $s3, $s3, 4
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 2
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_baixo_ESQUERDA_black_white:
+				
+				# branco preto 
+				curva_baixo_ESQUERDA_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t2)		
+				beq $a3, $a2, ciano_valido_dois_baixo_ESQUERDA_white_black
+				j ciano_nao_valido_dois_baixo_ESQUERDA_white_black	
+				ciano_valido_dois_baixo_ESQUERDA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t2)
+				sub $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 2
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_baixo_ESQUERDA_white_black:
+				
+		curva_baixo_direita_ciano:
+			lw $t0, ultima_direcao_ciano
+			sub $t9, $t9, $t0
+			beq $t9, 6, curva_BAIXO_direita_ciano
+			beq $t9, 7, curva_baixo_DIREITA_ciano
+			curva_BAIXO_direita_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, curva_BAIXO_direita_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, ciano_valido_dois_BAIXO_direita_black_black
+				j ciano_nao_valido_dois_BAIXO_direita_black_black	
+				ciano_valido_dois_BAIXO_direita_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t3)
+				addi $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 3
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_BAIXO_direita_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t3)		
+				beq $a3, $a2, ciano_valido_dois_BAIXO_direita_black_white
+				j ciano_nao_valido_dois_BAIXO_direita_black_white	
+				ciano_valido_dois_BAIXO_direita_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t3)
+				addi $s3, $s3, 256
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 3
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_BAIXO_direita_black_white:
+				
+				# branco preto 
+				curva_BAIXO_direita_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t3)		
+				beq $a3, $a2, ciano_valido_dois_BAIXO_direita_white_black
+				j ciano_nao_valido_dois_BAIXO_direita_white_black	
+				ciano_valido_dois_BAIXO_direita_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t3)
+				addi $s3, $s3, 256
+				sw $zero, indicador_white_ciano
+				li $t0, 3
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_BAIXO_direita_white_black:	
+				
+			curva_baixo_DIREITA_ciano:
+				lw $t0, indicador_white_ciano
+				beq $t0, 1, curva_baixo_DIREITA_ciano_WHITE_BLACK
+				
+				# preto preto
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, ciano_valido_dois_baixo_DIREITA_black_black
+				j ciano_nao_valido_dois_baixo_DIREITA_black_black	
+				ciano_valido_dois_baixo_DIREITA_black_black:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t4)
+				addi $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 5
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_baixo_DIREITA_black_black:
+				
+				# preto branco
+				lw $a3, color_white
+				lw $a2, 0($t4)		
+				beq $a3, $a2, ciano_valido_dois_baixo_DIREITA_black_white
+				j ciano_nao_valido_dois_baixo_DIREITA_black_white	
+				ciano_valido_dois_baixo_DIREITA_black_white:
+				lw $a3, color_black
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t4)
+				addi $s3, $s3, 4
+				li $t0, 1
+				sw $t0, indicador_white_ciano
+				li $t0, 5
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_baixo_DIREITA_black_white:
+				
+				# branco preto 
+				curva_baixo_DIREITA_ciano_WHITE_BLACK:
+				
+				lw $a3, color_black
+				lw $a2, 0($t4)		
+				beq $a3, $a2, ciano_valido_dois_baixo_DIREITA_white_black
+				j ciano_nao_valido_dois_baixo_DIREITA_white_black	
+				ciano_valido_dois_baixo_DIREITA_white_black:
+				lw $a3, color_white
+				sw $a3, 0($s3)
+				lw $a3, color_ciano
+				sw $a3, 0($t4)
+				addi $s3, $s3, 4
+				sw $zero, indicador_white_ciano
+				li $t0, 5
+				sw $t0, ultima_direcao_ciano
+				j end_fantasma_ciano
+				ciano_nao_valido_dois_baixo_DIREITA_white_black:
+	j end_fantasma_ciano
 	
 	tres_movimentos_possiveis_ciano:
-	j end_fantasma_azul
+	j end_fantasma_ciano
 
 	quatro_movimentos_possiveis_ciano:
-	j end_fantasma_azul
+	j end_fantasma_ciano
 	
-	end_fantasma_azul:
+	end_fantasma_ciano:
 jr $ra	
 	
 movimentar_fantasma_rosa:
@@ -4095,15 +6309,15 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_um_baixo_white_black:
 		
 		lw $a3, color_black
-		lw $a2, 0($t3)		# carrego o conteúdo da possível proxima posição do fantasma rosa
+		lw $a2, 0($t4)		# carrego o conteúdo da possível proxima posição do fantasma rosa
 		beq $a3, $a2, rosa_valido_um_direita_white_black	# se for preto, efetuamos o movimento
 		j rosa_nao_valido_um_direita_white_black		# senão, checamos a proxima direção	
 		rosa_valido_um_direita_white_black:
 		lw $a3, color_white
 		sw $a3, 0($s4)		# posição atual do fantasma rosa fica preto
 		lw $a3, color_pink
-		sw $a3, 0($t3)		# próxima posição do fantasma rosa fica rosa
-		addi $s4, $s4, 256		# salvo a nova posição do fantasma rosa em $s4
+		sw $a3, 0($t4)		# próxima posição do fantasma rosa fica rosa
+		addi $s4, $s4, 4		# salvo a nova posição do fantasma rosa em $s4
 		sw $zero, indicador_white_pink	# indico que o movimento não foi sobre uma pontuação
 		li $t0, 5
 		sw $t0, ultima_direcao_pink
@@ -4264,7 +6478,7 @@ movimentar_fantasma_rosa:
 				sw $a3, 0($t1)
 				sub $s4, $s4, 256
 				sw $zero, indicador_white_pink
-				li $t0, 5
+				li $t0, 1
 				sw $t0, ultima_direcao_pink
 				j end_fantasma_rosa
 				rosa_nao_valido_dois_cima_black_black:
@@ -4282,7 +6496,7 @@ movimentar_fantasma_rosa:
 				sub $s4, $s4, 256
 				li $t0, 1
 				sw $t0, indicador_white_pink
-				li $t0, 5
+				li $t0, 1
 				sw $t0, ultima_direcao_pink
 				j end_fantasma_rosa
 				rosa_nao_valido_dois_cima_black_white:
@@ -4301,7 +6515,7 @@ movimentar_fantasma_rosa:
 				sw $a3, 0($t1)
 				sub $s4, $s4, 256
 				sw $zero, indicador_white_pink
-				li $t0, 5
+				li $t0, 1
 				sw $t0, ultima_direcao_pink
 				j end_fantasma_rosa
 				rosa_nao_valido_dois_cima_white_black:
@@ -4312,35 +6526,35 @@ movimentar_fantasma_rosa:
 				
 				# preto preto
 				lw $a3, color_black
-				lw $a2, 0($t1)		
+				lw $a2, 0($t3)		
 				beq $a3, $a2, rosa_valido_dois_baixo_black_black
 				j rosa_nao_valido_dois_baixo_black_black	
 				rosa_valido_dois_baixo_black_black:
 				lw $a3, color_black
 				sw $a3, 0($s4)
 				lw $a3, color_pink
-				sw $a3, 0($t1)
-				sub $s4, $s4, 256
+				sw $a3, 0($t3)
+				addi $s4, $s4, 256
 				sw $zero, indicador_white_pink
-				li $t0, 5
+				li $t0, 3
 				sw $t0, ultima_direcao_pink
 				j end_fantasma_rosa
 				rosa_nao_valido_dois_baixo_black_black:
 				
 				# preto branco
 				lw $a3, color_white
-				lw $a2, 0($t1)		
+				lw $a2, 0($t3)		
 				beq $a3, $a2, rosa_valido_dois_baixo_black_white
 				j rosa_nao_valido_dois_baixo_black_white	
 				rosa_valido_dois_baixo_black_white:
 				lw $a3, color_black
 				sw $a3, 0($s4)
 				lw $a3, color_pink
-				sw $a3, 0($t1)
-				sub $s4, $s4, 256
+				sw $a3, 0($t3)
+				addi $s4, $s4, 256
 				li $t0, 1
 				sw $t0, indicador_white_pink
-				li $t0, 5
+				li $t0, 3
 				sw $t0, ultima_direcao_pink
 				j end_fantasma_rosa
 				rosa_nao_valido_dois_baixo_black_white:
@@ -4349,17 +6563,17 @@ movimentar_fantasma_rosa:
 				baixo_corredor_vertical_rosa_WHITE_BLACK:
 				
 				lw $a3, color_black
-				lw $a2, 0($t1)		
+				lw $a2, 0($t3)		
 				beq $a3, $a2, rosa_valido_dois_baixo_white_black
 				j rosa_nao_valido_dois_baixo_white_black	
 				rosa_valido_dois_baixo_white_black:
 				lw $a3, color_white
 				sw $a3, 0($s4)
 				lw $a3, color_pink
-				sw $a3, 0($t1)
-				sub $s4, $s4, 256
+				sw $a3, 0($t3)
+				addi $s4, $s4, 256
 				sw $zero, indicador_white_pink
-				li $t0, 5
+				li $t0, 3
 				sw $t0, ultima_direcao_pink
 				j end_fantasma_rosa
 				rosa_nao_valido_dois_baixo_white_black:
@@ -4369,6 +6583,7 @@ movimentar_fantasma_rosa:
 			sub $t9, $t9, $t0
 			beq $t9, -2, curva_CIMA_esquerda_rosa
 			beq $t9, 0, curva_cima_ESQUERDA_rosa
+			j curva_cima_ESQUERDA_rosa
 			curva_CIMA_esquerda_rosa:
 				lw $t0, indicador_white_pink
 				beq $t0, 1, curva_CIMA_esquerda_rosa_WHITE_BLACK
@@ -4609,8 +6824,8 @@ movimentar_fantasma_rosa:
 		curva_baixo_esquerda_rosa:
 			lw $t0, ultima_direcao_pink
 			sub $t9, $t9, $t0
-			beq $t9, 4, curva_BAIXO_esquerda_rosa
-			beq $t9, 0, curva_baixo_ESQUERDA_rosa
+			beq $t9, 0, curva_BAIXO_esquerda_rosa
+			beq $t9, 4, curva_baixo_ESQUERDA_rosa
 			curva_BAIXO_esquerda_rosa:
 				lw $t0, indicador_white_pink
 				beq $t0, 1, curva_BAIXO_esquerda_rosa_WHITE_BLACK
@@ -4847,7 +7062,6 @@ movimentar_fantasma_rosa:
 				sw $t0, ultima_direcao_pink
 				j end_fantasma_rosa
 				rosa_nao_valido_dois_baixo_DIREITA_white_black:
-	
 	j end_fantasma_rosa
 	
 	tres_movimentos_possiveis_rosa:
