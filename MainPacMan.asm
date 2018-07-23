@@ -108,22 +108,7 @@ main:
 	
 	lw $a3, color_blue
 	la $a0, display_address
-	sw $a3, 4124($a0)
-	sw $a3, 4140($a0)
-	sw $a3, 4172($a0)
-	sw $a3, 4188($a0)
-	sw $a3, 5640($a0)
-	sw $a3, 5652($a0)
-	sw $a3, 5672($a0)
-	sw $a3, 5692($a0)
-	sw $a3, 5712($a0)
-	sw $a3, 5732($a0)
-	sw $a3, 5744($a0)
-	sw $a3, 5164($a0)
-	sw $a3, 5196($a0)
-	#sw $a3, 4460($a0)
-	#sw $a3, 5128($a0)
-	#sw $a3, 4720($a0)
+	
 	
 	jal paint_stage_text
 
@@ -133,10 +118,11 @@ main:
 	
 	game_loop_stage_2:
 	beqz $s6, game_over 
-		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
+		jal checar_colisao_fantasma
+		sleep(90) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal mover_pac_man
 		jal contador_da_pontuacao
-		jal checar_colisao_fantasma
+		sleep(110) # velocidade dos fantasmas (PIXEL / MILISEGUNDO)
 		jal movimentar_fantasma_vermelho
 		jal movimentar_fantasma_laranja
 		jal movimentar_fantasma_ciano
@@ -7065,9 +7051,308 @@ movimentar_fantasma_rosa:
 	j end_fantasma_rosa
 	
 	tres_movimentos_possiveis_rosa:
+		# gerando o numero aleatorio em $a0
+		li $v0, 42
+		li $a1, 3
+		syscall
+	 	
+	 	lw $t0, ultima_direcao_pink
+	 	beq $t9, 8,  direita_cima_esquerda_rosa
+	 	beq $t9, 6,  cima_esquerda_baixo_rosa
+	 	beq $t9, 10, esquerda_baixo_direita_rosa
+	 	beq $t9, 9,  baixo_direita_cima_rosa
+	 	
+	 	direita_cima_esquerda_rosa:# 8
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 6, cima_esquerda_rosa
+	 		beq $t9, 5, esquerda_direita_rosa
+	 		beq $t9, 2, cima_direita_rosa
+	 		
+	 	cima_esquerda_baixo_rosa: # 6
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 3, baixo_esquerda_rosa
+	 		beq $t9, 1, cima_baixo_rosa
+	 		beq $t9, 5, cima_esquerda_rosa
+	 		
+	 	esquerda_baixo_direita_rosa: # 10
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 8, baixo_esquerda_rosa
+	 		beq $t9, 9, esquerda_direita_rosa
+	 		beq $t9, 5, baixo_direita_rosa
+	 		
+	 	baixo_direita_cima_rosa: # 9
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 6, baixo_direita_rosa
+	 		beq $t9, 7, cima_baixo_rosa
+	 		beq $t9, 8, cima_direita_rosa
+	 		
+	 	esquerda_direita_rosa:
+	 		beq $a0, 0, randomico_mover_esquerda
+	 		beq $a0, 1, randomico_mover_direita
+	 	
+	 	cima_baixo_rosa:
+			beq $a0, 0, randomico_mover_cima
+	 		beq $a0, 1, randomico_mover_baixo
+	 		
+		cima_esquerda_rosa:
+			beq $a0, 0, randomico_mover_esquerda
+	 		beq $a0, 1, randomico_mover_cima
+	 		
+		cima_direita_rosa:
+			beq $a0, 0, randomico_mover_cima
+	 		beq $a0, 1, randomico_mover_direita
+	 		
+	 	baixo_esquerda_rosa:
+	 		beq $a0, 0, randomico_mover_esquerda
+	 		beq $a0, 1, randomico_mover_baixo
+	 	
+	 	baixo_direita_rosa:
+			beq $a0, 0, randomico_mover_direita
+	 		beq $a0, 1, randomico_mover_baixo
+	 	
 	j end_fantasma_rosa
 
 	quatro_movimentos_possiveis_rosa:
+		# gerando o numero aleatorio em $a0
+		li $v0, 42
+		li $a1, 4
+		syscall
+		
+		beq $a0, 0, randomico_mover_cima
+		beq $a0, 1, randomico_mover_esquerda
+		beq $a0, 2, randomico_mover_baixo
+		beq $a0, 3, randomico_mover_direita
+		
+	randomico_mover_cima:
+		lw $t0, indicador_white_pink
+		beq $t0, 1, randomico_mover_cima_WHITE_BLACK
+	
+		# preto preto
+		lw $a3, color_black
+		lw $a2, 0($t1)		
+		beq $a3, $a2, rosa_valido_randomico_mover_cima_black_black
+		j rosa_nao_valido_randomico_mover_cima_black_black	
+		rosa_valido_randomico_mover_cima_black_black:
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t1)
+		sub $s4, $s4, 256
+		sw $zero, indicador_white_pink
+		li $t0, 1
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_cima_black_black:
+		
+		# preto branco
+		lw $a3, color_white
+		lw $a2, 0($t1)		
+		beq $a3, $a2, rosa_valido_randomico_mover_cima_black_white
+		j rosa_nao_valido_randomico_mover_cima_black_white	
+		rosa_valido_randomico_mover_cima_black_white:
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t1)
+		sub $s4, $s4, 256
+		li $t0, 1
+		sw $t0, indicador_white_pink
+		li $t0, 1
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_cima_black_white:
+		
+		# branco preto
+		randomico_mover_cima_WHITE_BLACK:
+		
+		lw $a3, color_black
+		lw $a2, 0($t1)		
+		beq $a3, $a2, rosa_valido_randomico_mover_cima_white_black
+		j rosa_nao_valido_randomico_mover_cima_white_black	
+		rosa_valido_randomico_mover_cima_white_black:
+		lw $a3, color_white
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t1)
+		sub $s4, $s4, 256
+		sw $zero, indicador_white_pink
+		li $t0, 1
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_cima_white_black:
+		
+	randomico_mover_esquerda:
+		lw $t0, indicador_white_pink
+		beq $t0, 1, randomico_mover_esquerda_WHITE_BLACK
+	
+		# preto preto
+		lw $a3, color_black
+		lw $a2, 0($t2)		
+		beq $a3, $a2, rosa_valido_randomico_mover_esquerda_black_black
+		j rosa_nao_valido_randomico_mover_esquerda_black_black	
+		rosa_valido_randomico_mover_esquerda_black_black:
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t2)
+		sub $s4, $s4, 4
+		sw $zero, indicador_white_pink
+		li $t0, 2
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_esquerda_black_black:
+		
+		# preto branco
+		lw $a3, color_white
+		lw $a2, 0($t2)		
+		beq $a3, $a2, rosa_valido_randomico_mover_esquerda_black_white
+		j rosa_nao_valido_randomico_mover_esquerda_black_white	
+		rosa_valido_randomico_mover_esquerda_black_white:
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t2)
+		sub $s4, $s4, 4
+		li $t0, 1
+		sw $t0, indicador_white_pink
+		li $t0, 2
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_esquerda_black_white:
+		
+		# branco preto
+		randomico_mover_esquerda_WHITE_BLACK:
+		
+		lw $a3, color_black
+		lw $a2, 0($t2)		
+		beq $a3, $a2, rosa_valido_randomico_mover_esquerda_white_black
+		j rosa_nao_valido_randomico_mover_esquerda_white_black	
+		rosa_valido_randomico_mover_esquerda_white_black:
+		lw $a3, color_white
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t2)
+		sub $s4, $s4, 4
+		sw $zero, indicador_white_pink
+		li $t0, 2
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_esquerda_white_black:
+		
+	randomico_mover_baixo:
+		lw $t0, indicador_white_pink
+		beq $t0, 1, randomico_mover_baixo_WHITE_BLACK
+	
+		# preto preto			lw $a3, color_black
+		lw $a2, 0($t3)		
+		beq $a3, $a2, rosa_valido_randomico_mover_baixo_black_black
+		j rosa_nao_valido_randomico_mover_baixo_black_black	
+		rosa_valido_randomico_mover_baixo_black_black:
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t3)
+		addi $s4, $s4, 256
+		sw $zero, indicador_white_pink
+		li $t0, 3
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_baixo_black_black:
+		
+		# preto branco
+		lw $a3, color_white
+		lw $a2, 0($t3)		
+		beq $a3, $a2, rosa_valido_randomico_mover_baixo_black_white
+		j rosa_nao_valido_randomico_mover_baixo_black_white	
+		rosa_valido_randomico_mover_baixo_black_white:
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t3)
+		addi $s4, $s4, 256
+		li $t0, 1
+		sw $t0, indicador_white_pink
+		li $t0, 3
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_baixo_black_white:
+		
+		# branco preto
+		randomico_mover_baixo_WHITE_BLACK:
+		
+		lw $a3, color_black
+		lw $a2, 0($t3)		
+		beq $a3, $a2, rosa_valido_randomico_mover_baixo_white_black
+		j rosa_nao_valido_randomico_mover_baixo_white_black	
+		rosa_valido_randomico_mover_baixo_white_black:
+		lw $a3, color_white
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t3)
+		addi $s4, $s4, 256
+		sw $zero, indicador_white_pink
+		li $t0, 3
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_baixo_white_black:
+		
+	randomico_mover_direita:
+		lw $t0, indicador_white_pink
+		beq $t0, 1, randomico_mover_direita_WHITE_BLACK
+	
+		# preto preto			lw $a3, color_black
+		lw $a2, 0($t4)		
+		beq $a3, $a2, rosa_valido_randomico_mover_direita_black_black
+		j rosa_nao_valido_randomico_mover_direita_black_black	
+		rosa_valido_randomico_mover_direita_black_black:
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t4)
+		addi $s4, $s4, 4
+		sw $zero, indicador_white_pink
+		li $t0, 5
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_direita_black_black:
+		
+		# preto branco
+		lw $a3, color_white
+		lw $a2, 0($t4)		
+		beq $a3, $a2, rosa_valido_randomico_mover_direita_black_white
+		j rosa_nao_valido_randomico_mover_direita_black_white	
+		rosa_valido_randomico_mover_direita_black_white:
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t4)
+		addi $s4, $s4, 4
+		li $t0, 1
+		sw $t0, indicador_white_pink
+		li $t0, 5
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_direita_black_white:
+		
+		# branco preto
+		randomico_mover_direita_WHITE_BLACK:
+		
+		lw $a3, color_black
+		lw $a2, 0($t4)		
+		beq $a3, $a2, rosa_valido_randomico_mover_direita_white_black
+		j rosa_nao_valido_randomico_mover_direita_white_black	
+		rosa_valido_randomico_mover_direita_white_black:
+		lw $a3, color_white
+		sw $a3, 0($s4)
+		lw $a3, color_pink
+		sw $a3, 0($t4)
+		addi $s4, $s4, 4
+		sw $zero, indicador_white_pink
+		li $t0, 5
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		rosa_nao_valido_randomico_mover_direita_white_black:
+	
 	j end_fantasma_rosa
 	
 	end_fantasma_rosa:
