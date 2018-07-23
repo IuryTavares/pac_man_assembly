@@ -1,3 +1,7 @@
+#	bug: 	bus dos fantasmas no portal do stage 2	
+#		bug no teste de colisão enquanto todos os personagens se movem
+#		bug no reposicionamento dos fantasma caso estejam sobre uma pontuação
+#
 #   	Fábio Alves - Arquitetura e organização de computadores 2018.1
 #								
 #   	Tools -> KeyBoard and Display MMIO Simulator            
@@ -80,7 +84,7 @@ main:
 	jal paint_pts
 	jal paint_lives	
 	jal contador_da_pontuacao
-	j a
+	
 	# pintando o stage 1
 	jal paint_stage_1
 	
@@ -90,10 +94,14 @@ main:
 	
 	game_loop_stage_1:
 	beqz $s6, game_over # checa se a quantidade de vidas é diferente de zero
-		sleep(200) # velocidade do pac man
+		jal checar_colisao_fantasma
+		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal mover_pac_man
 		jal contador_da_pontuacao
-		jal checar_colisao_fantasma
+		jal movimentar_fantasma_vermelho
+		jal movimentar_fantasma_laranja
+		jal movimentar_fantasma_ciano
+		jal movimentar_fantasma_rosa
 		beq $v0, 1, wait_1
 		beq $s7, 10, end_game_loop_stage_1 	# 144 pontos stage 1
 	j game_loop_stage_1
@@ -101,14 +109,14 @@ main:
 	
 	# pintando a area do labirinto 1 de preto para pintar o labirinto 2
 	jal resetar_labirinto
-	a:
+	
 	# configurando e pintando stage 2
 	li $s5, 2            	# indicando que estamos no stage 2
 	jal paint_stage_2
 	
-	lw $a3, color_blue
-	la $a0, display_address
-	sw $a3, ($a0)
+	#lw $a3, color_blue
+	#la $a0, display_address
+	#sw $a3, ($a0)
 	
 	jal paint_stage_text
 
@@ -6109,10 +6117,10 @@ movimentar_fantasma_rosa:
 	
 	# calcula qual a direção e se movimento nela
 	um_movimento_possivel_rosa:
-		beq $t9, 1, mover_cima
-		beq $t9, 2, mover_esquerda
-		beq $t9, 3, mover_baixo
-		beq $t9, 5, mover_direita
+		beq $t9, 1, mover_cima_rosa
+		beq $t9, 2, mover_esquerda_rosa
+		beq $t9, 3, mover_baixo_rosa
+		beq $t9, 5, mover_direita_rosa
 	
 	dois_movimentos_possiveis_rosa:
 		lw $t0, ultima_direcao_pink
@@ -6124,28 +6132,28 @@ movimentar_fantasma_rosa:
 		beq $t9, 8, dois_baixo_direita_rosa
 		
 		dois_direita_esquerda_rosa: # 7
-			beq $t0, 2, mover_esquerda
-			beq $t0, 5, mover_direita
+			beq $t0, 2, mover_esquerda_rosa
+			beq $t0, 5, mover_direita_rosa
 			
 		dois_cima_baixo_rosa: # 4
-			beq $t0, 1, mover_cima
-			beq $t0, 3, mover_baixo
+			beq $t0, 1, mover_cima_rosa
+			beq $t0, 3, mover_baixo_rosa
 			
 		dois_cima_esquerda_rosa: # 3
-			beq $t0, 5, mover_cima
-			beq $t0, 3, mover_esquerda
+			beq $t0, 5, mover_cima_rosa
+			beq $t0, 3, mover_esquerda_rosa
 			
 		dois_cima_direita_rosa: # 6
-			beq $t0, 2, mover_cima
-			beq $t0, 3, mover_direita
+			beq $t0, 2, mover_cima_rosa
+			beq $t0, 3, mover_direita_rosa
 			
 		dois_baixo_esquerda_rosa: # 5
-			beq $t0, 5, mover_baixo
-			beq $t0, 1, mover_esquerda
+			beq $t0, 5, mover_baixo_rosa
+			beq $t0, 1, mover_esquerda_rosa
 			
 		dois_baixo_direita_rosa: # 8
-			beq $t0, 2, mover_baixo
-			beq $t0, 1, mover_direita
+			beq $t0, 2, mover_baixo_rosa
+			beq $t0, 1, mover_direita_rosa
 			
 	tres_movimentos_possiveis_rosa:
 		# gerando o numero aleatorio em $a0
@@ -6184,28 +6192,28 @@ movimentar_fantasma_rosa:
 	 		beq $t9, 8, cima_direita_rosa
 	 		
 	 	esquerda_direita_rosa:
-	 		beq $a0, 0, mover_esquerda
-	 		beq $a0, 1, mover_direita
+	 		beq $a0, 0, mover_esquerda_rosa
+	 		beq $a0, 1, mover_direita_rosa
 	 	
 	 	cima_baixo_rosa:
-			beq $a0, 0, mover_cima
-	 		beq $a0, 1, mover_baixo
+			beq $a0, 0, mover_cima_rosa
+	 		beq $a0, 1, mover_baixo_rosa
 	 		
 		cima_esquerda_rosa:
-			beq $a0, 0, mover_esquerda
-	 		beq $a0, 1, mover_cima
+			beq $a0, 0, mover_esquerda_rosa
+	 		beq $a0, 1, mover_cima_rosa
 	 		
 		cima_direita_rosa:
-			beq $a0, 0, mover_cima
-	 		beq $a0, 1, mover_direita
+			beq $a0, 0, mover_cima_rosa
+	 		beq $a0, 1, mover_direita_rosa
 	 		
 	 	baixo_esquerda_rosa:
-	 		beq $a0, 0, mover_esquerda
-	 		beq $a0, 1, mover_baixo
+	 		beq $a0, 0, mover_esquerda_rosa
+	 		beq $a0, 1, mover_baixo_rosa
 	 	
 	 	baixo_direita_rosa:
-			beq $a0, 0, mover_direita
-	 		beq $a0, 1, mover_baixo
+			beq $a0, 0, mover_direita_rosa
+	 		beq $a0, 1, mover_baixo_rosa
 	 	
 	j end_fantasma_rosa
 
@@ -6223,28 +6231,28 @@ movimentar_fantasma_rosa:
 		beq $t9, 6,  quatro_baixo_direita_cima_rosa
 		
 		quatro_direita_cima_esquerda_rosa: # 10
-			beq $a0, 0, mover_direita
-			beq $a0, 1, mover_cima
-			beq $a0, 2, mover_esquerda
+			beq $a0, 0, mover_direita_rosa
+			beq $a0, 1, mover_cima_rosa
+			beq $a0, 2, mover_esquerda_rosa
 		
 		quatro_cima_esquerda_baixo_rosa: # 9
-			beq $a0, 0, mover_direita
-			beq $a0, 1, mover_cima
-			beq $a0, 2, mover_esquerda
+			beq $a0, 0, mover_direita_rosa
+			beq $a0, 1, mover_cima_rosa
+			beq $a0, 2, mover_esquerda_rosa
 		
 		quatro_esquerda_baixo_direita_rosa: # 8
-			beq $a0, 0, mover_direita
-			beq $a0, 1, mover_cima
-			beq $a0, 2, mover_esquerda
+			beq $a0, 0, mover_direita_rosa
+			beq $a0, 1, mover_cima_rosa
+			beq $a0, 2, mover_esquerda_rosa
 		
 		quatro_baixo_direita_cima_rosa: # 6
-			beq $a0, 0, mover_direita
-			beq $a0, 1, mover_cima
-			beq $a0, 2, mover_esquerda
+			beq $a0, 0, mover_direita_rosa
+			beq $a0, 1, mover_cima_rosa
+			beq $a0, 2, mover_esquerda_rosa
 		
-	mover_cima:
+	mover_cima_rosa:
 		lw $t0, indicador_white_pink
-		beq $t0, 1, mover_cima_WHITE_BLACK
+		beq $t0, 1, mover_cima_rosa_WHITE_BLACK
 	
 		# preto preto
 		lw $a3, color_black
@@ -6282,7 +6290,7 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_cima_black_white:
 		
 		# branco preto
-		mover_cima_WHITE_BLACK:
+		mover_cima_rosa_WHITE_BLACK:
 		
 		lw $a3, color_black
 		lw $a2, 0($t1)		
@@ -6300,9 +6308,9 @@ movimentar_fantasma_rosa:
 		j end_fantasma_rosa
 		rosa_nao_valido_mover_cima_white_black:
 		
-	mover_esquerda:
+	mover_esquerda_rosa:
 		lw $t0, indicador_white_pink
-		beq $t0, 1, mover_esquerda_WHITE_BLACK
+		beq $t0, 1, mover_esquerda_rosa_WHITE_BLACK
 	
 		# preto preto
 		lw $a3, color_black
@@ -6340,7 +6348,7 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_esquerda_black_white:
 		
 		# branco preto
-		mover_esquerda_WHITE_BLACK:
+		mover_esquerda_rosa_WHITE_BLACK:
 		
 		lw $a3, color_black
 		lw $a2, 0($t2)		
@@ -6358,9 +6366,9 @@ movimentar_fantasma_rosa:
 		j end_fantasma_rosa
 		rosa_nao_valido_mover_esquerda_white_black:
 		
-	mover_baixo:
+	mover_baixo_rosa:
 		lw $t0, indicador_white_pink
-		beq $t0, 1, mover_baixo_WHITE_BLACK
+		beq $t0, 1, mover_baixo_rosa_WHITE_BLACK
 	
 		# preto preto			
 		lw $a3, color_black
@@ -6398,7 +6406,7 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_baixo_black_white:
 		
 		# branco preto
-		mover_baixo_WHITE_BLACK:
+		mover_baixo_rosa_WHITE_BLACK:
 		
 		lw $a3, color_black
 		lw $a2, 0($t3)		
@@ -6416,9 +6424,9 @@ movimentar_fantasma_rosa:
 		j end_fantasma_rosa
 		rosa_nao_valido_mover_baixo_white_black:
 		
-	mover_direita:
+	mover_direita_rosa:
 		lw $t0, indicador_white_pink
-		beq $t0, 1, mover_direita_WHITE_BLACK
+		beq $t0, 1, mover_direita_rosa_WHITE_BLACK
 	
 		# preto preto			
 		lw $a3, color_black
@@ -6456,7 +6464,7 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_direita_black_white:
 		
 		# branco preto
-		mover_direita_WHITE_BLACK:
+		mover_direita_rosa_WHITE_BLACK:
 		
 		lw $a3, color_black
 		lw $a2, 0($t4)		
