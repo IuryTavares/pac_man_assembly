@@ -87,7 +87,7 @@ main:
 	
 	# pintando o stage 1
 	jal paint_stage_1
-	
+	j a
 	wait_1: # espera uma tecla ser pressionada para iniciar o movimento do pac man
 	jal posicionar_personagens
 	press_any_key()
@@ -106,7 +106,7 @@ main:
 		beq $s7, 10, end_game_loop_stage_1 	# 144 pontos stage 1
 	j game_loop_stage_1
 	end_game_loop_stage_1:
-	
+	a:
 	# pintando a area do labirinto 1 de preto para pintar o labirinto 2
 	jal resetar_labirinto
 	
@@ -116,13 +116,23 @@ main:
 	
 	#lw $a3, color_blue
 	#la $a0, display_address
-	#sw $a3, ($a0)
+	#sw $a3, 3612($a0)
+	#sw $a3, 4124($a0)
+	#sw $a3, 3888($a0)
+	#sw $a3, 3912($a0)
+	#sw $a3, 3676($a0)
+	#sw $a3, 4188($a0)
+	#sw $a3, 5456($a0)
+	#sw $a3, 5416($a0)
+	#sw $a3, 5692($a0)
+	
 	
 	jal paint_stage_text
 
 	wait_2: # espera uma tecla ser pressionada para iniciar o movimento do pac man
 	jal posicionar_personagens
 	press_any_key()
+
 	
 	game_loop_stage_2:
 	beqz $s6, game_over 
@@ -130,9 +140,9 @@ main:
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal mover_pac_man
 		jal contador_da_pontuacao
-		jal movimentar_fantasma_vermelho
-		jal movimentar_fantasma_laranja
-		jal movimentar_fantasma_ciano
+		#jal movimentar_fantasma_vermelho
+		#jal movimentar_fantasma_laranja
+		#jal movimentar_fantasma_ciano
 		jal movimentar_fantasma_rosa
 		beq $v0, 1, wait_2
 		beq $s7, 20, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
@@ -3146,6 +3156,22 @@ movimentar_fantasma_vermelho:
 		red_nao_valido_mover_cima_white_black:
 		
 	mover_esquerda_red:
+		# portal esquerdo
+		bne $s5, 2, nao_portal_direito_red
+		la $a0, display_address
+		addi $t0, $a0, 3844
+		bne $t2, $t0, nao_portal_esquerdo_red
+		lw $a3, color_black
+		sw $a3, 0($s1)
+		addi $s1, $a0, 3952
+		lw $a3, color_red
+		sw $a3, 0($s1)
+		sw $zero, indicador_white_red
+		li $t0, 2
+		sw $t0, ultima_direcao_red
+		j end_fantasma_red
+		nao_portal_esquerdo_red:
+	
 		lw $t0, indicador_white_red
 		beq $t0, 1, mover_esquerda_red_WHITE_BLACK
 	
@@ -3262,6 +3288,22 @@ movimentar_fantasma_vermelho:
 		red_nao_valido_mover_baixo_white_black:
 		
 	mover_direita_red:
+		# portal direito
+		bne $s5, 2, nao_portal_direito_red
+		la $a0, display_address
+		addi $t0, $a0, 3956
+		bne $t4, $t0, nao_portal_direito_red
+		lw $a3, color_black
+		sw $a3, 0($s1)
+		addi $s1, $a0, 3848
+		lw $a3, color_red
+		sw $a3, 0($s1)
+		sw $zero, indicador_white_red
+		li $t0, 5
+		sw $t0, ultima_direcao_red
+		j end_fantasma_red
+		nao_portal_direito_red:
+	
 		lw $t0, indicador_white_red
 		beq $t0, 1, mover_direita_red_WHITE_BLACK
 	
@@ -3500,6 +3542,22 @@ movimentar_fantasma_laranja:
 		orange_nao_valido_mover_cima_white_black:
 		
 	mover_esquerda_orange:
+		# portal esquerdo
+		bne $s5, 2, nao_portal_direito_orange
+		la $a0, display_address
+		addi $t0, $a0, 3844
+		bne $t2, $t0, nao_portal_esquerdo_orange
+		lw $a3, color_black
+		sw $a3, 0($s2)
+		addi $s2, $a0, 3952
+		lw $a3, color_orange
+		sw $a3, 0($s2)
+		sw $zero, indicador_white_orange
+		li $t0, 2
+		sw $t0, ultima_direcao_orange
+		j end_fantasma_orange
+		nao_portal_esquerdo_orange:
+	
 		lw $t0, indicador_white_orange
 		beq $t0, 1, mover_esquerda_orange_WHITE_BLACK
 	
@@ -3616,6 +3674,22 @@ movimentar_fantasma_laranja:
 		orange_nao_valido_mover_baixo_white_black:
 		
 	mover_direita_orange:
+		# portal direito
+		bne $s5, 2, nao_portal_direito_orange
+		la $a0, display_address
+		addi $t0, $a0, 3956
+		bne $t4, $t0, nao_portal_direito_orange
+		lw $a3, color_black
+		sw $a3, 0($s2)
+		addi $s2, $a0, 3848
+		lw $a3, color_orange
+		sw $a3, 0($s2)
+		sw $zero, indicador_white_orange
+		li $t0, 5
+		sw $t0, ultima_direcao_orange
+		j end_fantasma_orange
+		nao_portal_direito_orange:
+	
 		lw $t0, indicador_white_orange
 		beq $t0, 1, mover_direita_orange_WHITE_BLACK
 	
@@ -3855,6 +3929,22 @@ movimentar_fantasma_ciano:
 		ciano_nao_valido_mover_cima_white_black:
 		
 	mover_esquerda_ciano:
+		# portal esquerdo
+		bne $s5, 2, nao_portal_direito_ciano
+		la $a0, display_address
+		addi $t0, $a0, 3844
+		bne $t2, $t0, nao_portal_esquerdo_ciano
+		lw $a3, color_black
+		sw $a3, 0($s3)
+		addi $s3, $a0, 3952
+		lw $a3, color_ciano
+		sw $a3, 0($s3)
+		sw $zero, indicador_white_ciano
+		li $t0, 2
+		sw $t0, ultima_direcao_ciano
+		j end_fantasma_ciano
+		nao_portal_esquerdo_ciano:
+	
 		lw $t0, indicador_white_ciano
 		beq $t0, 1, mover_esquerda_ciano_WHITE_BLACK
 	
@@ -3971,6 +4061,22 @@ movimentar_fantasma_ciano:
 		ciano_nao_valido_mover_baixo_white_black:
 		
 	mover_direita_ciano:
+		# portal direito
+		bne $s5, 2, nao_portal_direito_ciano
+		la $a0, display_address
+		addi $t0, $a0, 3956
+		bne $t4, $t0, nao_portal_direito_ciano
+		lw $a3, color_black
+		sw $a3, 0($s3)
+		addi $s3, $a0, 3848
+		lw $a3, color_ciano
+		sw $a3, 0($s3)
+		sw $zero, indicador_white_ciano
+		li $t0, 5
+		sw $t0, ultima_direcao_ciano
+		j end_fantasma_ciano
+		nao_portal_direito_ciano:
+	
 		lw $t0, indicador_white_ciano
 		beq $t0, 1, mover_direita_ciano_WHITE_BLACK
 	
@@ -4298,6 +4404,22 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_cima_white_black:
 		
 	mover_esquerda_rosa:
+		# portal esquerdo
+		bne $s5, 2, nao_portal_direito_rosa
+		la $a0, display_address
+		addi $t0, $a0, 3844
+		bne $t2, $t0, nao_portal_esquerdo_rosa
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		addi $s4, $a0, 3952
+		lw $a3, color_pink
+		sw $a3, 0($s4)
+		sw $zero, indicador_white_pink
+		li $t0, 2
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		nao_portal_esquerdo_rosa:
+		
 		lw $t0, indicador_white_pink
 		beq $t0, 1, mover_esquerda_rosa_WHITE_BLACK
 	
@@ -4414,6 +4536,22 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_baixo_white_black:
 		
 	mover_direita_rosa:
+		# portal direito
+		bne $s5, 2, nao_portal_direito_rosa
+		la $a0, display_address
+		addi $t0, $a0, 3956
+		bne $t4, $t0, nao_portal_direito_rosa
+		lw $a3, color_black
+		sw $a3, 0($s4)
+		addi $s4, $a0, 3848
+		lw $a3, color_pink
+		sw $a3, 0($s4)
+		sw $zero, indicador_white_pink
+		li $t0, 5
+		sw $t0, ultima_direcao_pink
+		j end_fantasma_rosa
+		nao_portal_direito_rosa:
+	
 		lw $t0, indicador_white_pink
 		beq $t0, 1, mover_direita_rosa_WHITE_BLACK
 	
