@@ -3478,9 +3478,92 @@ movimentar_fantasma_laranja:
 			beq $t0, 1, mover_direita_orange
 			
 	tres_movimentos_possiveis_orange:
+		lw $t0, 0xffff0004 	# ultimo movimento do pac man 
+		li $v0, 42
+		li $a1, 2
+		syscall			# valor randomico
+		lw $t5, ultima_direcao_orange
+		beq $t9, 8,  direita_cima_esquerda_orange
+	 	beq $t9, 6,  cima_esquerda_baixo_orange
+	 	beq $t9, 10, esquerda_baixo_direita_orange
+	 	beq $t9, 9,  baixo_direita_cima_orange
+	 	
+	 	direita_cima_esquerda_orange: # se o pac man se moveu para baixo, movimento aleatorio
+	 		bne $t0, 116, decisao_direita_cima_esquerda_orange  
+	 		sub $t9, $t9, $t5
+	 		beq $t9, 6, cima_esquerda_orange
+	 		beq $t9, 5, direita_esquerda_orange
+	 		beq $t9, 3, cima_direita_orange
+	 		decisao_direita_cima_esquerda_orange:
+	 		beq $t0, 119, mover_cima_orange
+	 		beq $t0, 97, mover_esquerda_orange
+	 		beq $t0, 100, mover_direita_orange
+	 		
+	 	cima_esquerda_baixo_orange: # se o pac man se moveu para baixo, movimento aleatorio
+	 		bne $t0, 100, decisao_cima_esquerda_baixo_orange  
+	 		sub $t9, $t9, $t5
+	 		beq $t9, 5, cima_esquerda_orange
+	 		beq $t9, 1, cima_baixo_orange
+	 		beq $t9, 3, baixo_esquerda_orange
+	 		decisao_cima_esquerda_baixo_orange:
+	 		beq $t0, 119, mover_cima_orange
+	 		beq $t0, 97, mover_esquerda_orange
+	 		beq $t0, 116, mover_baixo_orange
+	 		
+	 	esquerda_baixo_direita_orange:
+	 		bne $t0, 119, decisao_esquerda_baixo_direita_orange  
+	 		sub $t9, $t9, $t5
+	 		beq $t9, 8, baixo_esquerda_orange
+	 		beq $t9, 9, direita_esquerda_orange
+	 		beq $t9, 5, baixo_direita_orange
+	 		decisao_esquerda_baixo_direita_orange:
+	 		beq $t0, 97, mover_esquerda_orange
+	 		beq $t0, 116, mover_baixo_orange
+	 		beq $t0, 100, mover_direita_orange
+	 		
+	 	baixo_direita_cima_orange:
+	 		bne $t0, 97, decisao_baixo_direita_cima_orange  
+	 		sub $t9, $t9, $t5
+	 		beq $t9, 8, cima_direita_orange
+	 		beq $t9, 7, cima_baixo_orange
+	 		beq $t9, 6, baixo_direita_orange
+	 		decisao_baixo_direita_cima_orange:
+	 		beq $t0, 116, mover_baixo_orange
+	 		beq $t0, 100, mover_direita_orange
+	 		beq $t0, 119, mover_cima_orange
+	 	
+	 	cima_baixo_orange:
+	 		beq $a0, 0, mover_cima_orange
+	 		beq $a0, 1, mover_baixo_orange
+	 	
+	 	direita_esquerda_orange:
+	 		beq $a0, 0, mover_direita_orange
+	 		beq $a0, 1, mover_esquerda_orange
+	 	
+	 	cima_esquerda_orange:
+	 		beq $a0, 0, mover_cima_orange
+	 		beq $a0, 1, mover_esquerda_orange
+	 	
+	 	cima_direita_orange:
+	 		beq $a0, 0, mover_cima_orange
+	 		beq $a0, 1, mover_direita_orange
+	 	
+	 	baixo_esquerda_orange:
+	 		beq $a0, 0, mover_baixo_orange
+	 		beq $a0, 1, mover_esquerda_orange
+	 	
+	 	baixo_direita_orange:
+	 		beq $a0, 0, mover_baixo_orange
+	 		beq $a0, 1, mover_direita_orange
+	 	
 	j end_fantasma_orange
 
 	quatro_movimentos_possiveis_orange:
+		lw $t0, 0xffff0004
+		beq $t0, 119, mover_cima_orange # w
+		beq $t0, 97, mover_esquerda_orange # a
+		beq $t0, 116 mover_baixo_orange # s
+		beq $t0, 100 mover_direita_orange # d
 	j end_fantasma_orange	
 		
 	mover_cima_orange:
