@@ -141,7 +141,7 @@ main:
 		jal mover_pac_man
 		jal contador_da_pontuacao
 		#jal movimentar_fantasma_vermelho
-		#jal movimentar_fantasma_laranja
+		jal movimentar_fantasma_laranja
 		#jal movimentar_fantasma_ciano
 		jal movimentar_fantasma_rosa
 		beq $v0, 1, wait_2
