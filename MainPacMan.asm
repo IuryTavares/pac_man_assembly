@@ -3095,9 +3095,81 @@ movimentar_fantasma_vermelho:
 	j end_fantasma_red
 
 	quatro_movimentos_possiveis_red:
+	addi $sp, $sp, -20
+	sw $ra, 0($sp)
+		# pegando as coordenadas do pac man e do red ghost
+		move $a0, $s0 # coordenada do pac man
+		jal calcular_coordenadas
+		move $t1, $v0 # linha do pac man
+		move $t2, $v1 # coluna do pac man
+		
+		move $a0, $s1 # coordenada do red ghost
+		jal calcular_coordenadas
+		move $t3, $v0 # linha do red ghost
+		move $t4, $v1 # coluna do red ghost
+		
+		# pac man - ($t1,$t2), red ghost - ($t3,$t4)
+		
+		# se eles estiverem na mesma linha ou coluna
+		beq $t1, $t3, mesma_linha_red
+		beq $t2, $t4, mesma_coluna_red
+
+		#determinar o quadrante que o pac man está em relação ao red ghost
+		bgt $t3, $t1, quadrante_esquerda_red 
+		j quadrante_direita_red
+		
+		quadrante_esquerda_red:
+			blt $t4, $t1, quadrante_cima_esquerda_red
+			j quadrante_baixo_esquerda_red
+			
+		quadrante_direita_red:
+			blt $t4, $t1, quadrante_cima_direita_red
+			j quadrante_baixo_direita_red
+		
+		# efetua a lógica dos movimentos
+		quadrante_cima_esquerda_red:
+			move $a0, $t3
+			move $a1, $t4
+			move $a2, $t1
+			move $a3, $t4
+			jal distancia_euclidiana
+			move $v1, $v0 # distancia hotizontal
+			
+			move $a0, $t3
+			move $a1, $t4
+			move $a2, $t3
+			move $a3, $t2
+			jal distancia_euclidiana # distancia vertical
+			
+			# mesma distancia
+			# ir para cima
+			# ir para direita
+			
+			
+		quadrante_baixo_esquerda_red:
+		
+		quadrante_cima_direita_red:
+		
+		quadrante_baixo_direita_red:
+		
+		mesma_linha_red:
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			blt $t3, $t1, mover_direita_red # pac man a direita - vá para direita
+			j mover_esquerda_red # senão vá para esquerda
+			
+		mesma_coluna_red:
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			blt $t4, $t2, mover_cima_red
+			j mover_baixo_red 
+		
+		
 	j end_fantasma_red	
 		
 	mover_cima_red:
+		sub $t1, $s1, 256	# endereço fantasma vermelho acima
+	
 		lw $t0, indicador_white_red
 		beq $t0, 1, mover_cima_red_WHITE_BLACK
 	
@@ -3156,6 +3228,8 @@ movimentar_fantasma_vermelho:
 		red_nao_valido_mover_cima_white_black:
 		
 	mover_esquerda_red:
+		sub $t2, $s1, 4		# endereço fantasma vermelho esquerda
+		
 		# portal esquerdo
 		bne $s5, 2, nao_portal_direito_red
 		la $a0, display_address
@@ -3230,6 +3304,8 @@ movimentar_fantasma_vermelho:
 		red_nao_valido_mover_esquerda_white_black:
 		
 	mover_baixo_red:
+		addi $t3, $s1, 256	# endereço fantasma vermelho abaixo
+
 		lw $t0, indicador_white_red
 		beq $t0, 1, mover_baixo_red_WHITE_BLACK
 	
@@ -3288,6 +3364,8 @@ movimentar_fantasma_vermelho:
 		red_nao_valido_mover_baixo_white_black:
 		
 	mover_direita_red:
+		addi $t4, $s1, 4	# endereço fantasma vermelho direita
+		
 		# portal direito
 		bne $s5, 2, nao_portal_direito_red
 		la $a0, display_address
@@ -4693,4 +4771,75 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_direita_white_black:
 
 	end_fantasma_rosa:
+jr $ra
+
+# $a0 - x1
+# $a1 - y1
+# $a2 - x2
+# $a3 - y2
+# $v0 - distancia
+# distance = sqrt((x1-x2)^2+(y1-y2)^2)
+# devido a limitação da raiz quadrada em assembly alguns resultados não serão bem definidos
+distancia_euclidiana:
+	# parte de dentro da raiz
+	sub $a0, $a0, $a2 # a =(x1-x2)
+	sub $a1, $a1, $a3 # b = (y1-y2)
+	mul $a0, $a0, $a0 # a^2
+	mul $a1, $a1, $a1 # b^2
+	add $a0, $a0, $a1 # c = a^2 + b^2
+	# raiz
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	jal integerSqrt # sqrt(c)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	# o retorno de integerSqrt já está em $v0
+jr $ra
+
+# $a0 - endereço no bit map
+# $v0 - valor da linha
+# $v1 - valor da coluna
+calcular_coordenadas:
+	la $a3, display_address
+	sub $a0, $a0, $a3
+	div $a1, $a0, 256 	# t1 é o valor da linha
+	mul $a2, $a1, 256	
+	sub $a2, $a0, $a2 
+	div $a2, $a2, 4		# t2 é o valor da coluna
+	move $v0, $a1
+	move $v1, $a2
+jr $ra
+
+# $a0 valor de entrada
+# $v0 resultado
+integerSqrt:
+  	move $v0, $zero        # initalize return
+  	move $t1, $a0          # move a0 to t1
+  	addi $t0, $zero, 1
+	sll $t0, $t0, 30      # shift to second-to-top bit
+
+	integerSqrt_bit:
+ 	slt $t2, $t1, $t0     # num < bit
+ 	beq $t2, $zero, integerSqrt_loop
+	srl $t0, $t0, 2       # bit >> 2
+ 	j integerSqrt_bit
+
+	integerSqrt_loop:
+	beq $t0, $zero, integerSqrt_return
+  	add $t3, $v0, $t0     # t3 = return + bit
+ 	slt $t2, $t1, $t3
+ 	beq $t2, $zero, integerSqrt_else
+ 	srl $v0, $v0, 1       # return >> 1
+ 	j integerSqrt_loop_end
+	
+	integerSqrt_else:
+ 	sub $t1, $t1, $t3     # num -= return + bit
+ 	srl $v0, $v0, 1       # return >> 1
+ 	add $v0, $v0, $t0     # return + bit
+
+	integerSqrt_loop_end:
+ 	srl $t0, $t0, 2       # bit >> 2
+ 	j integerSqrt_loop
+
+	integerSqrt_return:
 jr $ra
