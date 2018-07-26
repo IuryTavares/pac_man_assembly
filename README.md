@@ -1,12 +1,17 @@
 <body>
 Tools -> KeyBoard and Display MMIO Simulator
-
-Tools -> Bitmap Display						
-		Unit Width in Pixels:  8				
-		Unit Height in Pixels: 8				
-		Display Width in Pixels:  512				
-    Display Height in Pixels: 256				
+<br><br>
+Tools -> Bitmap Display
+<br>
+		Unit Width in Pixels:  8
+<br>
+		Unit Height in Pixels: 8
+<br>
+		Display Width in Pixels:  512
+<br>
+    Display Height in Pixels: 256
+<br>
 		Base address for display: 0x10010000 (static data)
-    
+<br><br>
 movimentação -> w,a,s,d
 <body\>
