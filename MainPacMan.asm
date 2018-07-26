@@ -1,7 +1,3 @@
-#	bug: 	bus dos fantasmas no portal do stage 2	
-#		bug no teste de colisão enquanto todos os personagens se movem
-#		bug no reposicionamento dos fantasma caso estejam sobre uma pontuação
-#
 #   	Fábio Alves - Arquitetura e organização de computadores 2018.1
 #								
 #   	Tools -> KeyBoard and Display MMIO Simulator            
@@ -13,15 +9,8 @@
 #		Display Height in Pixels: 256				
 #		Base address for display: 0x10010000 (static data)	
 
-#		(Detalhes importantes)
-# 	endereço topo esq:  0
-#	endereço topo dir:  252
-#	endereço baixo esq:  7936
-#	endereço baixo dir: 8188
-#	mover p/ esquerda: address-4
-#	mover p/ direita:  address+4
-#	mover p/ cima:     address-256
-#	mover p/ baixo:	   address+256
+#	(Detalhes importantes)
+#
 #	$s0 - posição do pac man	
 #	$s1 - posição do fantasma vermelho
 #	$s2 - posição do fantasma laranja
@@ -82,7 +71,6 @@ main:
 	# pintando os textos do display
 	jal paint_stage_text
 	jal paint_pts
-	jal paint_lives	
 	jal contador_da_pontuacao
 	
 	# pintando o stage 1
@@ -90,20 +78,22 @@ main:
 	j a
 	wait_1: # espera uma tecla ser pressionada para iniciar o movimento do pac man
 	jal posicionar_personagens
+	jal paint_lives
 	press_any_key()
 	
 	game_loop_stage_1:
 	beqz $s6, game_over # checa se a quantidade de vidas é diferente de zero
-		jal checar_colisao_fantasma
+		#jal checar_colisao_fantasma
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal mover_pac_man
+		jal checar_colisao_fantasma
+		beq $v0, 1, wait_1
 		jal contador_da_pontuacao
 		jal movimentar_fantasma_vermelho
 		jal movimentar_fantasma_laranja
 		jal movimentar_fantasma_ciano
 		jal movimentar_fantasma_rosa
-		beq $v0, 1, wait_1
-		beq $s7, 10, end_game_loop_stage_1 	# 144 pontos stage 1
+		beq $s7, 144, end_game_loop_stage_1 	# 144 pontos stage 1
 	j game_loop_stage_1
 	end_game_loop_stage_1:
 	a:
@@ -113,39 +103,27 @@ main:
 	# configurando e pintando stage 2
 	li $s5, 2            	# indicando que estamos no stage 2
 	jal paint_stage_2
-	
-	#lw $a3, color_blue
-	#la $a0, display_address
-	#sw $a3, 3612($a0)
-	#sw $a3, 4124($a0)
-	#sw $a3, 3888($a0)
-	#sw $a3, 3912($a0)
-	#sw $a3, 3676($a0)
-	#sw $a3, 4188($a0)
-	#sw $a3, 5456($a0)
-	#sw $a3, 5416($a0)
-	#sw $a3, 5692($a0)
-	
-	
+
 	jal paint_stage_text
 
 	wait_2: # espera uma tecla ser pressionada para iniciar o movimento do pac man
 	jal posicionar_personagens
+	jal paint_lives
 	press_any_key()
 
 	
 	game_loop_stage_2:
 	beqz $s6, game_over 
-		jal checar_colisao_fantasma
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
-		jal mover_pac_man
 		jal contador_da_pontuacao
-		#jal movimentar_fantasma_vermelho
+		jal movimentar_fantasma_vermelho
 		jal movimentar_fantasma_laranja
-		#jal movimentar_fantasma_ciano
+		jal movimentar_fantasma_ciano
 		jal movimentar_fantasma_rosa
+		jal checar_colisao_fantasma
 		beq $v0, 1, wait_2
-		beq $s7, 20, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
+		jal mover_pac_man
+		beq $s7, 274, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
 	j game_loop_stage_2
 	end_game_loop_stage_2:
 	
@@ -157,7 +135,8 @@ main:
 	game_over:
 	jal resetar_labirinto
 	jal paint_game_over
-	end_of_program:
+
+end_of_program:
 li $v0, 10 # fim do programa
 syscall
 
@@ -165,48 +144,57 @@ syscall
 # se ocorreu uma colisao a função pinta a nova quantidade de vidas
 # $v0 - retorna 1 se houver colisão, 0 se não houver
 checar_colisao_fantasma:
-	move $t0, $s0 	# move a posicao atual do pac man para $t0
 	li $v0, 0	# indica no retorno da função que não houve colisão
 	
-	# checando colisão - fantasma azul
-	sub $t2, $t0, 256
-	beq $t2, $s1, colidiu_com_um_fantasma # colisão por cima
-	sub $t2, $t0, 4
-	beq $t2, $s1, colidiu_com_um_fantasma # colisão pela esquerda
-	addi $t2, $t0, 256
-	beq $t2, $s1, colidiu_com_um_fantasma # colisão por baixo
-	addi $t2, $t0, 4
-	beq $t2, $s1, colidiu_com_um_fantasma # colisão pela direita
+	# calculando as quatro direções do pac man
+	sub $t1, $s0, 256	# cima
+	sub $t2, $s0, 4		# esquerda
+	addi $t3, $s0, 256	# baixo
+	addi $t4, $s0, 4	# direita
 	
-	# checando colisão - fantasma laranja
-	sub $t2, $t0, 256
-	beq $t2, $s2, colidiu_com_um_fantasma # colisão por cima
-	sub $t2, $t0, 4
-	beq $t2, $s2, colidiu_com_um_fantasma # colisão pela esquerda
-	addi $t2, $t0, 256
-	beq $t2, $s2, colidiu_com_um_fantasma # colisão por baixo
-	addi $t2, $t0, 4
-	beq $t2, $s2, colidiu_com_um_fantasma # colisão pela direita
+	lw $t5, color_red
 	
-	# checando colisão - fantasma azul
-	sub $t2, $t0, 256
-	beq $t2, $s3, colidiu_com_um_fantasma # colisão por cima
-	sub $t2, $t0, 4
-	beq $t2, $s3, colidiu_com_um_fantasma # colisão pela esquerda
-	addi $t2, $t0, 256
-	beq $t2, $s3, colidiu_com_um_fantasma # colisão por baixo
-	addi $t2, $t0, 4
-	beq $t2, $s3, colidiu_com_um_fantasma # colisão pela direita
+	lw $t0, 0($t1)
+	beq $t0, $t5, colidiu_com_um_fantasma # colisão por cima
+	lw $t0, 0($t2)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão pela esquerda
+	lw $t0, 0($t3)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão por baixo
+	lw $t0, 0($t4)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão pela direita
 	
-	# checando colisão - fantasma rosa
-	sub $t2, $t0, 256
-	beq $t2, $s4, colidiu_com_um_fantasma # colisão por cima
-	sub $t2, $t0, 4
-	beq $t2, $s4, colidiu_com_um_fantasma # colisão pela esquerda
-	addi $t2, $t0, 256
-	beq $t2, $s4, colidiu_com_um_fantasma # colisão por baixo
-	addi $t2, $t0, 4
-	beq $t2, $s4, colidiu_com_um_fantasma # colisão pela direita
+	lw $t5, color_orange
+	
+	lw $t0, 0($t1)
+	beq $t0, $t5, colidiu_com_um_fantasma # colisão por cima
+	lw $t0, 0($t2)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão pela esquerda
+	lw $t0, 0($t3)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão por baixo
+	lw $t0, 0($t4)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão pela direita
+	
+	lw $t5, color_ciano
+	
+	lw $t0, 0($t1)
+	beq $t0, $t5, colidiu_com_um_fantasma # colisão por cima
+	lw $t0, 0($t2)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão pela esquerda
+	lw $t0, 0($t3)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão por baixo
+	lw $t0, 0($t4)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão pela direita
+	
+	lw $t5, color_pink
+	
+	lw $t0, 0($t1)
+	beq $t0, $t5, colidiu_com_um_fantasma # colisão por cima
+	lw $t0, 0($t2)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão pela esquerda
+	lw $t0, 0($t3)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão por baixo
+	lw $t0, 0($t4)
+	beq $t2, $t5, colidiu_com_um_fantasma # colisão pela direita
 	
 	j nao_colidiu_com_um_fantasma
 	
@@ -214,21 +202,58 @@ checar_colisao_fantasma:
 	li $v0, 1 		# indica no retorno da função que houve colisão
 	sub $s6, $s6, 1		# atualiza a quantidade total de vidas
 	
-	# PINTA DE PRETO A POSUÇÃO ATUAL DOS PERSONAGENS PARA SEREM REPOSICIONADOS
-	lw $a3, color_black
-	sw $a3, 0($s0)
+	# repintando posição atual do pac man da devida cor
+	lw $t0, color_black
+	sw $t0, 0($s0)
+	
+	# repintando posição atual do fantasma red da devida cor
+	lw $t0, indicador_white_red
+	beqz $t0, black_reposicionar_red 
+	lw $a3, color_white
 	sw $a3, 0($s1)
+	sw $zero, indicador_white_red
+	j exit_reposicionar_red
+	black_reposicionar_red:
+	lw $a3, color_black
+	sw $a3, 0($s1)
+	exit_reposicionar_red:
+	
+	# repintando posição atual do fantasma orange da devida cor
+	lw $t0, indicador_white_orange
+	beqz $t0, black_reposicionar_orange 
+	lw $a3, color_white
 	sw $a3, 0($s2)
+	sw $zero, indicador_white_orange
+	j exit_reposicionar_orange
+	black_reposicionar_orange:
+	lw $a3, color_black
+	sw $a3, 0($s2)
+	exit_reposicionar_orange:
+	
+	# repintando posição atual do fantasma ciano da devida cor
+	lw $t0, indicador_white_ciano
+	beqz $t0, black_reposicionar_ciano
+	lw $a3, color_white
 	sw $a3, 0($s3)
+	sw $zero, indicador_white_ciano
+	j exit_reposicionar_ciano
+	black_reposicionar_ciano:
+	lw $a3, color_black
+	sw $a3, 0($s3)
+	exit_reposicionar_ciano:
+	
+	# repintando posição atual do fantasma pink da devida cor
+	lw $t0, indicador_white_pink
+	beqz $t0, black_reposicionar_pink
+	lw $a3, color_white
 	sw $a3, 0($s4)
-	
-	# ATUALIZA A QUANTIDADE ATUAL DE VIDAS
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
-		jal paint_lives # pinta a quantidade atual de vidas
-	lw $ra, 0($sp)
-	addi $sp, $sp, 4
-	
+	sw $zero, indicador_white_pink
+	j exit_reposicionar_pink
+	black_reposicionar_pink:
+	lw $a3, color_black
+	sw $a3, 0($s4)
+	exit_reposicionar_pink:
+
 	nao_colidiu_com_um_fantasma:
 jr $ra
 
@@ -3092,10 +3117,68 @@ movimentar_fantasma_vermelho:
 			beq $t0, 1, mover_direita_red
 			
 	tres_movimentos_possiveis_red:
-	j end_fantasma_red
-
+		# gerando o numero aleatorio em $a0
+		li $v0, 42
+		li $a1, 3
+		syscall
+	 	
+	 	lw $t0, ultima_direcao_red
+	 	beq $t9, 8,  direita_cima_esquerda_red
+	 	beq $t9, 6,  cima_esquerda_baixo_red
+	 	beq $t9, 10, esquerda_baixo_direita_red
+	 	beq $t9, 9,  baixo_direita_cima_red
+	 	
+	 	direita_cima_esquerda_red:# 8
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 6, cima_esquerda_red
+	 		beq $t9, 5, esquerda_direita_red
+	 		beq $t9, 2, cima_direita_red
+	 		
+	 	cima_esquerda_baixo_red: # 6
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 3, baixo_esquerda_red
+	 		beq $t9, 1, cima_baixo_red
+	 		beq $t9, 5, cima_esquerda_red
+	 		
+	 	esquerda_baixo_direita_red: # 10
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 8, baixo_esquerda_red
+	 		beq $t9, 9, esquerda_direita_red
+	 		beq $t9, 5, baixo_direita_red
+	 		
+	 	baixo_direita_cima_red: # 9
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 6, baixo_direita_red
+	 		beq $t9, 7, cima_baixo_red
+	 		beq $t9, 8, cima_direita_red
+	 		
+	 	esquerda_direita_red:
+	 		beq $a0, 0, mover_esquerda_red
+	 		beq $a0, 1, mover_direita_red
+	 	
+	 	cima_baixo_red:
+			beq $a0, 0, mover_cima_red
+	 		beq $a0, 1, mover_baixo_red
+	 		
+		cima_esquerda_red:
+			beq $a0, 0, mover_esquerda_red
+	 		beq $a0, 1, mover_cima_red
+	 		
+		cima_direita_red:
+			beq $a0, 0, mover_cima_red
+	 		beq $a0, 1, mover_direita_red
+	 		
+	 	baixo_esquerda_red:
+	 		beq $a0, 0, mover_esquerda_red
+	 		beq $a0, 1, mover_baixo_red
+	 	
+	 	baixo_direita_red:
+			beq $a0, 0, mover_direita_red
+	 		beq $a0, 1, mover_baixo_red
+		
+		
 	quatro_movimentos_possiveis_red:
-	addi $sp, $sp, -20
+	addi $sp, $sp, -4
 	sw $ra, 0($sp)
 		# pegando as coordenadas do pac man e do red ghost
 		move $a0, $s0 # coordenada do pac man
@@ -3109,6 +3192,8 @@ movimentar_fantasma_vermelho:
 		move $t4, $v1 # coluna do red ghost
 		
 		# pac man - ($t1,$t2), red ghost - ($t3,$t4)
+		move $a0, $t3	# x do fantasma
+		move $a1, $t4	# y do fantasma
 		
 		# se eles estiverem na mesma linha ou coluna
 		beq $t1, $t3, mesma_linha_red
@@ -3128,30 +3213,109 @@ movimentar_fantasma_vermelho:
 		
 		# efetua a lógica dos movimentos
 		quadrante_cima_esquerda_red:
-			move $a0, $t3
-			move $a1, $t4
 			move $a2, $t1
 			move $a3, $t4
 			jal distancia_euclidiana
 			move $v1, $v0 # distancia hotizontal
-			
-			move $a0, $t3
-			move $a1, $t4
+
 			move $a2, $t3
 			move $a3, $t2
 			jal distancia_euclidiana # distancia vertical
 			
-			# mesma distancia
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			# mesma distancia - movimento aleatorio
+			beq $v1, $v0, randomico_cima_esquerda_red
 			# ir para cima
-			# ir para direita
-			
+			bgt $v1, $v0, mover_cima_red 
+			# ir para esquerda
+			j mover_esquerda_red
 			
 		quadrante_baixo_esquerda_red:
-		
+			move $a2, $t1
+			move $a3, $t4 
+			jal distancia_euclidiana
+			move $v1, $v0 # distancia hotizontal
+
+			move $a2, $t3
+			move $a3, $t2
+			jal distancia_euclidiana # distancia vertical
+			
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			# mesma distancia - movimento aleatorio
+			beq $v1, $v0, randomico_baixo_esquerda_red
+			# ir para cima
+			bgt $v1, $v0, mover_baixo_red 
+			# ir para esquerda
+			j mover_esquerda_red
+			
 		quadrante_cima_direita_red:
-		
+			move $a2, $t1
+			move $a3, $t4
+			jal distancia_euclidiana
+			move $v1, $v0 # distancia hotizontal
+
+			move $a2, $t3
+			move $a3, $t2
+			jal distancia_euclidiana # distancia vertical
+			
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			# mesma distancia - movimento aleatorio
+			beq $v1, $v0, randomico_cima_direita_red
+			# ir para cima
+			bgt $v1, $v0, mover_cima_red 
+			# ir para esquerda
+			j mover_direita_red
+			
 		quadrante_baixo_direita_red:
-		
+			move $a2, $t1
+			move $a3, $t4
+			jal distancia_euclidiana
+			move $v1, $v0 # distancia hotizontal
+
+			move $a2, $t3
+			move $a3, $t2
+			jal distancia_euclidiana # distancia vertical
+			
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			# mesma distancia - movimento aleatorio
+			beq $v1, $v0, randomico_baixo_direita_red
+			# ir para cima
+			bgt $v1, $v0, mover_baixo_red 
+			# ir para esquerda
+			j mover_direita_red
+			
+		randomico_cima_esquerda_red:
+			li $v0, 42
+			li $a1, 2
+			syscall
+			beqz $a0, mover_cima_red
+			j  mover_esquerda_red
+			
+		randomico_baixo_esquerda_red:
+			li $v0, 42
+			li $a1, 2
+			syscall
+			beqz $a0, mover_baixo_red
+			j  mover_esquerda_red
+			
+		randomico_cima_direita_red:
+			li $v0, 42
+			li $a1, 2
+			syscall
+			beqz $a0, mover_cima_red
+			j  mover_direita_red
+			
+		randomico_baixo_direita_red:
+			li $v0, 42
+			li $a1, 2
+			syscall
+			beqz $a0, mover_baixo_red
+			j  mover_direita_red
+			
 		mesma_linha_red:
 			lw $ra, 0($sp)
 			addi $sp, $sp 4
@@ -3163,9 +3327,6 @@ movimentar_fantasma_vermelho:
 			addi $sp, $sp 4
 			blt $t4, $t2, mover_cima_red
 			j mover_baixo_red 
-		
-		
-	j end_fantasma_red	
 		
 	mover_cima_red:
 		sub $t1, $s1, 256	# endereço fantasma vermelho acima
@@ -3633,8 +3794,6 @@ movimentar_fantasma_laranja:
 	 	baixo_direita_orange:
 	 		beq $a0, 0, mover_baixo_orange
 	 		beq $a0, 1, mover_direita_orange
-	 	
-	j end_fantasma_orange
 
 	quatro_movimentos_possiveis_orange:
 		lw $t0, 0xffff0004
@@ -3642,7 +3801,6 @@ movimentar_fantasma_laranja:
 		beq $t0, 97, mover_esquerda_orange # a
 		beq $t0, 116 mover_baixo_orange # s
 		beq $t0, 100 mover_direita_orange # d
-	j end_fantasma_orange	
 		
 	mover_cima_orange:
 		lw $t0, indicador_white_orange
@@ -4026,12 +4184,274 @@ movimentar_fantasma_ciano:
 			beq $t0, 1, mover_direita_ciano
 			
 	tres_movimentos_possiveis_ciano:
-	j end_fantasma_ciano
-
+		# gerando o numero aleatorio em $a0
+		li $v0, 42
+		li $a1, 3
+		syscall
+	 	
+	 	lw $t0, ultima_direcao_ciano
+	 	beq $t9, 8,  direita_cima_esquerda_ciano
+	 	beq $t9, 6,  cima_esquerda_baixo_ciano
+	 	beq $t9, 10, esquerda_baixo_direita_ciano
+	 	beq $t9, 9,  baixo_direita_cima_ciano
+	 	
+	 	direita_cima_esquerda_ciano:# 8
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 6, cima_esquerda_ciano
+	 		beq $t9, 5, esquerda_direita_ciano
+	 		beq $t9, 2, cima_direita_ciano
+	 		
+	 	cima_esquerda_baixo_ciano: # 6
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 3, baixo_esquerda_ciano
+	 		beq $t9, 1, cima_baixo_ciano
+	 		beq $t9, 5, cima_esquerda_ciano
+	 		
+	 	esquerda_baixo_direita_ciano: # 10
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 8, baixo_esquerda_ciano
+	 		beq $t9, 9, esquerda_direita_ciano
+	 		beq $t9, 5, baixo_direita_ciano
+	 		
+	 	baixo_direita_cima_ciano: # 9
+	 		sub $t9, $t9, $t0
+	 		beq $t9, 6, baixo_direita_ciano
+	 		beq $t9, 7, cima_baixo_ciano
+	 		beq $t9, 8, cima_direita_ciano
+	 		
+	 	esquerda_direita_ciano:
+	 		beq $a0, 0, mover_esquerda_ciano
+	 		beq $a0, 1, mover_direita_ciano
+	 	
+	 	cima_baixo_ciano:
+			beq $a0, 0, mover_cima_ciano
+	 		beq $a0, 1, mover_baixo_ciano
+	 		
+		cima_esquerda_ciano:
+			beq $a0, 0, mover_esquerda_ciano
+	 		beq $a0, 1, mover_cima_ciano
+	 		
+		cima_direita_ciano:
+			beq $a0, 0, mover_cima_ciano
+	 		beq $a0, 1, mover_direita_ciano
+	 		
+	 	baixo_esquerda_ciano:
+	 		beq $a0, 0, mover_esquerda_ciano
+	 		beq $a0, 1, mover_baixo_ciano
+	 	
+	 	baixo_direita_ciano:
+			beq $a0, 0, mover_direita_ciano
+	 		beq $a0, 1, mover_baixo_ciano
+	 		
 	quatro_movimentos_possiveis_ciano:
-	j end_fantasma_ciano	
+	li $v0, 42 # 1 - fica corajoso e persegue o pac man
+	li $a1, 2  # 0 - fica assustado e foge do pac man
+	syscall
+	move $t9, $a0
+	
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+		# pegando as coordenadas do pac man e do ciano ghost
+		move $a0, $s0 # coordenada do pac man
+		jal calcular_coordenadas
+		move $t1, $v0 # linha do pac man
+		move $t2, $v1 # coluna do pac man
 		
+		move $a0, $s1 # coordenada do ciano ghost
+		jal calcular_coordenadas
+		move $t3, $v0 # linha do ciano ghost
+		move $t4, $v1 # coluna do ciano ghost
+		
+		# pac man - ($t1,$t2), ciano ghost - ($t3,$t4)
+		move $a0, $t3	# x do fantasma
+		move $a1, $t4	# y do fantasma
+		
+		# se eles estiverem na mesma linha ou coluna
+		beq $t1, $t3, mesma_linha_ciano
+		beq $t2, $t4, mesma_coluna_ciano
+
+		#determinar o quadrante que o pac man está em relação ao ciano ghost
+		bgt $t3, $t1, quadrante_esquerda_ciano 
+		j quadrante_direita_ciano
+		
+		quadrante_esquerda_ciano:
+			blt $t4, $t1, quadrante_cima_esquerda_ciano
+			j quadrante_baixo_esquerda_ciano
+			
+		quadrante_direita_ciano:
+			blt $t4, $t1, quadrante_cima_direita_ciano
+			j quadrante_baixo_direita_ciano
+		
+		# efetua a lógica dos movimentos
+		quadrante_cima_esquerda_ciano:
+			move $a2, $t1
+			move $a3, $t4
+			jal distancia_euclidiana
+			move $v1, $v0 # distancia hotizontal
+
+			move $a2, $t3
+			move $a3, $t2
+			jal distancia_euclidiana # distancia vertical
+			
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			# mesma distancia - movimento aleatorio
+			beq $v1, $v0, randomico_cima_esquerda_ciano # ir para cima
+			
+			# indica se o fantasma está corajoso ou assustado
+			beq $t9, 1, corajoso_cima_esquerda_ciano
+			j assustado_cima_esquerda_ciano
+			
+			corajoso_cima_esquerda_ciano:
+			bgt $v1, $v0, mover_cima_ciano
+			j mover_esquerda_ciano
+			
+			assustado_cima_esquerda_ciano:
+			bgt $v1, $v0, mover_esquerda_ciano
+			j mover_cima_ciano
+			
+		quadrante_baixo_esquerda_ciano:
+			move $a2, $t1
+			move $a3, $t4 
+			jal distancia_euclidiana
+			move $v1, $v0 # distancia hotizontal
+
+			move $a2, $t3
+			move $a3, $t2
+			jal distancia_euclidiana # distancia vertical
+			
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			# mesma distancia - movimento aleatorio
+			beq $v1, $v0, randomico_baixo_esquerda_ciano
+			
+			# indica se o fantasma está corajoso ou assustado
+			beq $t9, 1, corajoso_baixo_esquerda_ciano
+			j assustado_baixo_esquerda_ciano
+			
+			corajoso_baixo_esquerda_ciano:
+			bgt $v1, $v0, mover_baixo_ciano
+			j mover_esquerda_ciano
+			
+			assustado_baixo_esquerda_ciano:
+			bgt $v1, $v0, mover_esquerda_ciano
+			j mover_baixo_ciano
+			
+		quadrante_cima_direita_ciano:
+			move $a2, $t1
+			move $a3, $t4
+			jal distancia_euclidiana
+			move $v1, $v0 # distancia hotizontal
+
+			move $a2, $t3
+			move $a3, $t2
+			jal distancia_euclidiana # distancia vertical
+			
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			# mesma distancia - movimento aleatorio
+			beq $v1, $v0, randomico_cima_direita_ciano
+			
+			# indica se o fantasma está corajoso ou assustado
+			beq $t9, 1, corajoso_cima_direita_ciano
+			j assustado_cima_direita_ciano
+			
+			corajoso_cima_direita_ciano:
+			bgt $v1, $v0, mover_cima_ciano
+			j mover_direita_ciano
+			
+			assustado_cima_direita_ciano:
+			bgt $v1, $v0, mover_direita_ciano
+			j mover_cima_ciano
+			
+		quadrante_baixo_direita_ciano:
+			move $a2, $t1
+			move $a3, $t4
+			jal distancia_euclidiana
+			move $v1, $v0 # distancia hotizontal
+
+			move $a2, $t3
+			move $a3, $t2
+			jal distancia_euclidiana # distancia vertical
+			
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			# mesma distancia - movimento aleatorio
+			beq $v1, $v0, randomico_baixo_direita_ciano
+			
+			# indica se o fantasma está corajoso ou assustado
+			beq $t9, 1, corajoso_baixo_direita_ciano
+			j assustado_baixo_direita_ciano
+			
+			corajoso_baixo_direita_ciano:
+			bgt $v1, $v0, mover_baixo_ciano
+			j mover_direita_ciano
+			
+			assustado_baixo_direita_ciano:
+			bgt $v1, $v0, mover_direita_ciano
+			j mover_baixo_ciano
+			
+		randomico_cima_esquerda_ciano:
+			li $v0, 42
+			li $a1, 2
+			syscall
+			beqz $a0, mover_cima_ciano
+			j  mover_esquerda_ciano
+			
+		randomico_baixo_esquerda_ciano:
+			li $v0, 42
+			li $a1, 2
+			syscall
+			beqz $a0, mover_baixo_ciano
+			j  mover_esquerda_ciano
+			
+		randomico_cima_direita_ciano:
+			li $v0, 42
+			li $a1, 2
+			syscall
+			beqz $a0, mover_cima_ciano
+			j  mover_direita_ciano
+			
+		randomico_baixo_direita_ciano:
+			li $v0, 42
+			li $a1, 2
+			syscall
+			beqz $a0, mover_baixo_ciano
+			j  mover_direita_ciano
+			
+		mesma_linha_ciano:
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			
+			beq $t9, 1, corajoso_mesma_linha_ciano
+			j assustado_mesma_linha_ciano
+			
+			corajoso_mesma_linha_ciano:
+			blt $t3, $t1, mover_direita_ciano # pac man a direita - vá para direita
+			j mover_esquerda_ciano # senão vá para esquerda
+			
+			assustado_mesma_linha_ciano:
+			blt $t3, $t1, mover_esquerda_ciano # pac man a direita - vá para direita
+			j mover_direita_ciano # senão vá para esquerda
+			
+		mesma_coluna_ciano:
+			lw $ra, 0($sp)
+			addi $sp, $sp 4
+			
+			beq $t9, 1, corajoso_mesma_coluna_ciano
+			j assustado_mesma_coluna_ciano
+			
+			corajoso_mesma_coluna_ciano:
+			blt $t4, $t2, mover_cima_ciano
+			j mover_baixo_ciano
+			
+			assustado_mesma_coluna_ciano:
+			blt $t4, $t2, mover_baixo_ciano
+			j mover_cima_ciano
+			
 	mover_cima_ciano:
+		sub $t1, $s3, 256	# endereço fantasma ciano acima
+		
 		lw $t0, indicador_white_ciano
 		beq $t0, 1, mover_cima_ciano_WHITE_BLACK
 	
@@ -4090,6 +4510,8 @@ movimentar_fantasma_ciano:
 		ciano_nao_valido_mover_cima_white_black:
 		
 	mover_esquerda_ciano:
+		sub $t2, $s3, 4		# endereço fantasma ciano esquerda
+
 		# portal esquerdo
 		bne $s5, 2, nao_portal_direito_ciano
 		la $a0, display_address
@@ -4164,6 +4586,8 @@ movimentar_fantasma_ciano:
 		ciano_nao_valido_mover_esquerda_white_black:
 		
 	mover_baixo_ciano:
+		addi $t3, $s3, 256	# endereço fantasma ciano abaixo
+
 		lw $t0, indicador_white_ciano
 		beq $t0, 1, mover_baixo_ciano_WHITE_BLACK
 	
@@ -4222,6 +4646,8 @@ movimentar_fantasma_ciano:
 		ciano_nao_valido_mover_baixo_white_black:
 		
 	mover_direita_ciano:
+		addi $t4, $s3, 4	# endereço fantasma ciano direita
+		
 		# portal direito
 		bne $s5, 2, nao_portal_direito_ciano
 		la $a0, display_address
@@ -4470,8 +4896,6 @@ movimentar_fantasma_rosa:
 	 	baixo_direita_rosa:
 			beq $a0, 0, mover_direita_rosa
 	 		beq $a0, 1, mover_baixo_rosa
-	 	
-	j end_fantasma_rosa
 
 	quatro_movimentos_possiveis_rosa:
 		# gerando o número aleatorio em $a0
