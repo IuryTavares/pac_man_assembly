@@ -3109,65 +3109,51 @@ movimentar_fantasma_vermelho:
 			beq $t0, 1, mover_direita_red
 			
 	tres_movimentos_possiveis_red:
-		# gerando o numero aleatorio em $a0
-		li $v0, 42
-		li $a1, 3
-		syscall
-	 	
-	 	lw $t0, ultima_direcao_red
-	 	beq $t9, 8,  direita_cima_esquerda_red
-	 	beq $t9, 6,  cima_esquerda_baixo_red
-	 	beq $t9, 10, esquerda_baixo_direita_red
-	 	beq $t9, 9,  baixo_direita_cima_red
-	 	
-	 	direita_cima_esquerda_red:# 8
-	 		sub $t9, $t9, $t0
-	 		beq $t9, 6, cima_esquerda_red
-	 		beq $t9, 5, esquerda_direita_red
-	 		beq $t9, 2, cima_direita_red
-	 		
-	 	cima_esquerda_baixo_red: # 6
-	 		sub $t9, $t9, $t0
-	 		beq $t9, 3, baixo_esquerda_red
-	 		beq $t9, 1, cima_baixo_red
-	 		beq $t9, 5, cima_esquerda_red
-	 		
-	 	esquerda_baixo_direita_red: # 10
-	 		sub $t9, $t9, $t0
-	 		beq $t9, 8, baixo_esquerda_red
-	 		beq $t9, 9, esquerda_direita_red
-	 		beq $t9, 5, baixo_direita_red
-	 		
-	 	baixo_direita_cima_red: # 9
-	 		sub $t9, $t9, $t0
-	 		beq $t9, 6, baixo_direita_red
-	 		beq $t9, 7, cima_baixo_red
-	 		beq $t9, 8, cima_direita_red
-	 		
-	 	esquerda_direita_red:
-	 		beq $a0, 0, mover_esquerda_red
-	 		beq $a0, 1, mover_direita_red
-	 	
-	 	cima_baixo_red:
-			beq $a0, 0, mover_cima_red
-	 		beq $a0, 1, mover_baixo_red
-	 		
-		cima_esquerda_red:
-			beq $a0, 0, mover_esquerda_red
-	 		beq $a0, 1, mover_cima_red
-	 		
-		cima_direita_red:
-			beq $a0, 0, mover_cima_red
-	 		beq $a0, 1, mover_direita_red
-	 		
-	 	baixo_esquerda_red:
-	 		beq $a0, 0, mover_esquerda_red
-	 		beq $a0, 1, mover_baixo_red
-	 	
-	 	baixo_direita_red:
-			beq $a0, 0, mover_direita_red
-	 		beq $a0, 1, mover_baixo_red
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+		# pegando as coordenadas do pac man e do red ghost
+		move $a0, $s0 # coordenada do pac man
+		jal calcular_coordenadas
+		move $t1, $v0 # linha do pac man
+		move $t2, $v1 # coluna do pac man
 		
+		move $a0, $s1 # coordenada do red ghost
+		jal calcular_coordenadas
+		move $t3, $v0 # linha do red ghost
+		move $t4, $v1 # coluna do red ghost
+		
+		# pac man - ($t1,$t2), red ghost - ($t3,$t4)
+		move $a0, $t3	# x do fantasma
+		move $a1, $t4	# y do fantasma
+		
+		bgt $t3, $t1, tres_quadrante_esquerda_red 
+		j tres_quadrante_direita_red
+		
+		tres_quadrante_esquerda_red:
+			blt $t4, $t1, aux_tres_quadrante_esquerda_red
+			li $t5, 3	# está no terceiro quadrante, baixo-esquerda
+			j end_calculando_quadrantes
+			aux_tres_quadrante_esquerda_red:
+			li $t5, 2	# está no segundo quadrante, cima-esquerda
+			j end_calculando_quadrantes
+			
+		tres_quadrante_direita_red:
+			blt $t4, $t1, aux_tres_quadrante_direita_red
+			li $t5, 4	# está no quarto quadrante, baixo-direita
+			j end_calculando_quadrantes
+			aux_tres_quadrante_direita_red:
+			li $t5, 1	# está no primeiro quadrante, cima-direita
+			j end_calculando_quadrantes
+		
+		end_calculando_quadrantes:
+		
+		primeiro_quadrante_red:
+			
+		segundo_quadrante_red:
+		
+		terceiro_quadrante_red:
+		
+		quarto_quadrante_red:
 		
 	quatro_movimentos_possiveis_red:
 	addi $sp, $sp, -4
