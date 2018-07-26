@@ -67,15 +67,12 @@ main:
 	li $s5, 1            	# indicando que estamos no stage 1
 	li $s6, 3		# indicando que temos 3 vidas iniciais
 	li $s7, 0		# indicando que a pontuação inicial é zero
-	
-	# pintando os textos do display
+
 	jal paint_stage_text
 	jal paint_pts
 	jal contador_da_pontuacao
-	
-	# pintando o stage 1
 	jal paint_stage_1
-	j a
+
 	wait_1: # espera uma tecla ser pressionada para iniciar o movimento do pac man
 	jal posicionar_personagens
 	jal paint_lives
@@ -85,25 +82,21 @@ main:
 	beqz $s6, game_over # checa se a quantidade de vidas é diferente de zero
 		#jal checar_colisao_fantasma
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
-		jal mover_pac_man
-		jal checar_colisao_fantasma
-		beq $v0, 1, wait_1
 		jal contador_da_pontuacao
 		jal movimentar_fantasma_vermelho
 		jal movimentar_fantasma_laranja
 		jal movimentar_fantasma_ciano
 		jal movimentar_fantasma_rosa
+		jal checar_colisao_fantasma
+		beq $v0, 1, wait_1
+		jal mover_pac_man
 		beq $s7, 144, end_game_loop_stage_1 	# 144 pontos stage 1
 	j game_loop_stage_1
 	end_game_loop_stage_1:
-	a:
-	# pintando a area do labirinto 1 de preto para pintar o labirinto 2
-	jal resetar_labirinto
-	
-	# configurando e pintando stage 2
-	li $s5, 2            	# indicando que estamos no stage 2
-	jal paint_stage_2
 
+	jal resetar_labirinto
+	li $s5, 2
+	jal paint_stage_2
 	jal paint_stage_text
 
 	wait_2: # espera uma tecla ser pressionada para iniciar o movimento do pac man
@@ -111,7 +104,6 @@ main:
 	jal paint_lives
 	press_any_key()
 
-	
 	game_loop_stage_2:
 	beqz $s6, game_over 
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
