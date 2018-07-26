@@ -1,3 +1,4 @@
+<body>
 Tools -> KeyBoard and Display MMIO Simulator
 
 Tools -> Bitmap Display						
@@ -8,3 +9,4 @@ Tools -> Bitmap Display
 		Base address for display: 0x10010000 (static data)
     
 movimentação -> w,a,s,d
+<body\>
