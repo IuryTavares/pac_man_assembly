@@ -2961,7 +2961,7 @@ resetar_labirinto:
 	lw $ra 0($sp)
 	addi $sp, $sp, 4
 jr $ra
-
+		
 movimentar_fantasma_vermelho:
 	li $t9, 0
 	li $t0, 0 # conta a quantidade de movimentos válidos
@@ -3043,6 +3043,7 @@ movimentar_fantasma_vermelho:
 		beq $t9, 5, mover_direita_red
 	
 	dois_movimentos_possiveis_red:
+	
 		lw $t0, ultima_direcao_red
 		beq $t9, 7, dois_direita_esquerda_red
 		beq $t9, 4, dois_cima_baixo_red
@@ -3076,7 +3077,54 @@ movimentar_fantasma_vermelho:
 			beq $t0, 1, mover_direita_red
 			
 	tres_movimentos_possiveis_red:
-	# gerando o numero aleatorio em $a0
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+		# pegando as coordenadas do pac man e do red ghost
+		move $a0, $s0 # coordenada do pac man
+		jal calcular_coordenadas
+		move $t1, $v0 # linha do pac man
+		move $t2, $v1 # coluna do pac man
+		
+		move $a0, $s1 # coordenada do red ghost
+		jal calcular_coordenadas
+		move $t3, $v0 # linha do red ghost
+		move $t4, $v1 # coluna do red ghost
+		
+		beq $t1, $t3, tres_mesma_linha_red
+		beq $t2, $t4, tres_mesma_coluna_red
+		lw $ra, 0($sp)
+		addi $sp, $sp, 4
+		j tres_sem_perseguicao_red
+		
+		tres_mesma_linha_red:
+			move $a0, $t1
+			move $a1, $t2
+			move $a2, $t3
+			move $a3, $t4
+			jal distancia_euclidiana
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			bgt $v0, 5, tres_sem_perseguicao_red
+			lw $t0, 0xffff0004
+			beq $t0, 97, mover_esquerda_red # a
+			beq $t0, 100, mover_direita_red # d
+		
+		tres_mesma_coluna_red:
+			move $a0, $t1
+			move $a1, $t2
+			move $a2, $t3
+			move $a3, $t4
+			jal distancia_euclidiana
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			bgt $v0, 5, tres_sem_perseguicao_red
+			lw $t0, 0xffff0004
+			beq $t0, 119, mover_cima_red # w
+			beq $t0, 115, mover_baixo_red # s
+		
+		tres_sem_perseguicao_red:
+		
+		# gerando o numero aleatorio em $a0
 		li $v0, 42
 		li $a1, 3
 		syscall
@@ -3690,6 +3738,54 @@ movimentar_fantasma_laranja:
 			beq $t0, 1, mover_direita_orange
 			
 	tres_movimentos_possiveis_orange:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+		# pegando as coordenadas do pac man e do orange ghost
+		move $a0, $s0 # coordenada do pac man
+		jal calcular_coordenadas
+		move $t1, $v0 # linha do pac man
+		move $t2, $v1 # coluna do pac man
+		
+		move $a0, $s1 # coordenada do orange ghost
+		jal calcular_coordenadas
+		move $t3, $v0 # linha do orange ghost
+		move $t4, $v1 # coluna do orange ghost
+		
+		beq $t1, $t3, tres_mesma_linha_orange
+		beq $t2, $t4, tres_mesma_coluna_orange
+		lw $ra, 0($sp)
+		addi $sp, $sp, 4
+		j tres_sem_perseguicao_orange
+		
+		tres_mesma_linha_orange:
+			move $a0, $t1
+			move $a1, $t2
+			move $a2, $t3
+			move $a3, $t4
+			jal distancia_euclidiana
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			bgt $v0, 5, tres_sem_perseguicao_orange
+			lw $t0, 0xffff0004
+			beq $t0, 97, mover_esquerda_orange # a
+			beq $t0, 100, mover_direita_orange # d
+		
+		tres_mesma_coluna_orange:
+			move $a0, $t1
+			move $a1, $t2
+			move $a2, $t3
+			move $a3, $t4
+			jal distancia_euclidiana
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			bgt $v0, 5, tres_sem_perseguicao_orange
+			lw $t0, 0xffff0004
+			beq $t0, 119, mover_cima_orange # w
+			beq $t0, 115, mover_baixo_orange # s
+		
+		tres_sem_perseguicao_orange:
+		
+	
 		lw $t0, 0xffff0004 	# ultimo movimento do pac man 
 		li $v0, 42
 		li $a1, 2
@@ -3769,6 +3865,53 @@ movimentar_fantasma_laranja:
 	 		beq $a0, 1, mover_direita_orange
 
 	quatro_movimentos_possiveis_orange:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+		# pegando as coordenadas do pac man e do orange ghost
+		move $a0, $s0 # coordenada do pac man
+		jal calcular_coordenadas
+		move $t1, $v0 # linha do pac man
+		move $t2, $v1 # coluna do pac man
+		
+		move $a0, $s1 # coordenada do orange ghost
+		jal calcular_coordenadas
+		move $t3, $v0 # linha do orange ghost
+		move $t4, $v1 # coluna do orange ghost
+		
+		beq $t1, $t3, quatro_mesma_linha_orange
+		beq $t2, $t4, quatro_mesma_coluna_orange
+		lw $ra, 0($sp)
+		addi $sp, $sp, 4
+		j quatro_sem_perseguicao_orange
+		
+		quatro_mesma_linha_orange:
+			move $a0, $t1
+			move $a1, $t2
+			move $a2, $t3
+			move $a3, $t4
+			jal distancia_euclidiana
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			bgt $v0, 5, quatro_sem_perseguicao_orange
+			lw $t0, 0xffff0004
+			beq $t0, 97, mover_esquerda_orange # a
+			beq $t0, 100, mover_direita_orange # d
+		
+		quatro_mesma_coluna_orange:
+			move $a0, $t1
+			move $a1, $t2
+			move $a2, $t3
+			move $a3, $t4
+			jal distancia_euclidiana
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			bgt $v0, 5, quatro_sem_perseguicao_orange
+			lw $t0, 0xffff0004
+			beq $t0, 119, mover_cima_orange # w
+			beq $t0, 115, mover_baixo_orange # s
+		
+		quatro_sem_perseguicao_orange:
+		
 		lw $t0, 0xffff0004
 		beq $t0, 119, mover_cima_orange # w
 		beq $t0, 97, mover_esquerda_orange # a
@@ -3776,6 +3919,8 @@ movimentar_fantasma_laranja:
 		beq $t0, 100 mover_direita_orange # d
 		
 	mover_cima_orange:
+		sub $t1, $s2, 256	# endereço fantasma orange acima
+	
 		lw $t0, indicador_white_orange
 		beq $t0, 1, mover_cima_orange_WHITE_BLACK
 	
@@ -3834,6 +3979,8 @@ movimentar_fantasma_laranja:
 		orange_nao_valido_mover_cima_white_black:
 		
 	mover_esquerda_orange:
+		sub $t2, $s2, 4		# endereço fantasma orange esquerd
+	
 		# portal esquerdo
 		bne $s5, 2, nao_portal_esquerdo_orange
 		la $a0, display_address
@@ -3908,6 +4055,8 @@ movimentar_fantasma_laranja:
 		orange_nao_valido_mover_esquerda_white_black:
 		
 	mover_baixo_orange:
+		addi $t3, $s2, 256	# endereço fantasma orange abaixo
+		
 		lw $t0, indicador_white_orange
 		beq $t0, 1, mover_baixo_orange_WHITE_BLACK
 	
@@ -3966,6 +4115,8 @@ movimentar_fantasma_laranja:
 		orange_nao_valido_mover_baixo_white_black:
 		
 	mover_direita_orange:
+		addi $t4, $s2, 4	# endereço fantasma orange direita
+	
 		# portal direito
 		bne $s5, 2, nao_portal_direito_orange
 		la $a0, display_address
@@ -4172,6 +4323,53 @@ movimentar_fantasma_ciano:
 			beq $t0, 1, mover_direita_ciano
 			
 	tres_movimentos_possiveis_ciano:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+		# pegando as coordenadas do pac man e do ciano ghost
+		move $a0, $s0 # coordenada do pac man
+		jal calcular_coordenadas
+		move $t1, $v0 # linha do pac man
+		move $t2, $v1 # coluna do pac man
+		
+		move $a0, $s1 # coordenada do ciano ghost
+		jal calcular_coordenadas
+		move $t3, $v0 # linha do ciano ghost
+		move $t4, $v1 # coluna do ciano ghost
+		
+		beq $t1, $t3, tres_mesma_linha_ciano
+		beq $t2, $t4, tres_mesma_coluna_ciano
+		lw $ra, 0($sp)
+		addi $sp, $sp, 4
+		j tres_sem_perseguicao_ciano
+		
+		tres_mesma_linha_ciano:
+			move $a0, $t1
+			move $a1, $t2
+			move $a2, $t3
+			move $a3, $t4
+			jal distancia_euclidiana
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			bgt $v0, 5, tres_sem_perseguicao_ciano
+			lw $t0, 0xffff0004
+			beq $t0, 97, mover_esquerda_ciano # a
+			beq $t0, 100, mover_direita_ciano # d
+		
+		tres_mesma_coluna_ciano:
+			move $a0, $t1
+			move $a1, $t2
+			move $a2, $t3
+			move $a3, $t4
+			jal distancia_euclidiana
+			lw $ra, 0($sp)
+			addi $sp, $sp, 4
+			bgt $v0, 5, tres_sem_perseguicao_ciano
+			lw $t0, 0xffff0004
+			beq $t0, 119, mover_cima_ciano # w
+			beq $t0, 115, mover_baixo_ciano # s
+		
+		tres_sem_perseguicao_ciano:
+		
 		li $v0, 42 # 1 - fica corajoso e persegue o pac man
 		li $a1, 2  # 0 - fica assustado e foge do pac man
 		syscall
@@ -4957,6 +5155,8 @@ movimentar_fantasma_rosa:
 			beq $a0, 2, mover_esquerda_rosa
 		
 	mover_cima_rosa:
+		sub $t1, $s4, 256	# endereço fantasma rosa acima
+		
 		lw $t0, indicador_white_pink
 		beq $t0, 1, mover_cima_rosa_WHITE_BLACK
 	
@@ -5015,6 +5215,8 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_cima_white_black:
 		
 	mover_esquerda_rosa:
+		sub $t2, $s4, 4		# endereço fantasma rosa esquerda
+		
 		# portal esquerdo
 		beq $s5, 1, nao_portal_esquerdo_rosa
 		la $a0, display_address
@@ -5090,6 +5292,8 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_esquerda_white_black:
 		
 	mover_baixo_rosa:
+		addi $t3, $s4, 256	# endereço fantasma rosa abaixo
+	
 		lw $t0, indicador_white_pink
 		beq $t0, 1, mover_baixo_rosa_WHITE_BLACK
 	
@@ -5148,6 +5352,8 @@ movimentar_fantasma_rosa:
 		rosa_nao_valido_mover_baixo_white_black:
 		
 	mover_direita_rosa:
+		addi $t4, $s4, 4	# endereço fantasma rosa direita
+	
 		# portal direito
 		beq $s5, 1, nao_portal_direito_rosa
 		la $a0, display_address
