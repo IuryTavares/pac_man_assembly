@@ -72,7 +72,7 @@ main:
 	jal paint_pts
 	jal contador_da_pontuacao
 	jal paint_stage_1
-	j teste
+	#j teste
 	wait_1: # espera uma tecla ser pressionada para iniciar o movimento do pac man
 	jal posicionar_personagens
 	jal paint_lives
@@ -3350,7 +3350,7 @@ movimentar_fantasma_vermelho:
 		sub $t2, $s1, 4		# endereço fantasma vermelho esquerda
 		
 		# portal esquerdo
-		bne $s5, 2, nao_portal_direito_red
+		bne $s5, 2, nao_portal_esquerdo_red
 		la $a0, display_address
 		addi $t0, $a0, 3844
 		bne $t2, $t0, nao_portal_esquerdo_red
@@ -3835,7 +3835,7 @@ movimentar_fantasma_laranja:
 		
 	mover_esquerda_orange:
 		# portal esquerdo
-		bne $s5, 2, nao_portal_direito_orange
+		bne $s5, 2, nao_portal_esquerdo_orange
 		la $a0, display_address
 		addi $t0, $a0, 3844
 		bne $t2, $t0, nao_portal_esquerdo_orange
@@ -4525,7 +4525,7 @@ movimentar_fantasma_ciano:
 		sub $t2, $s3, 4		# endereço fantasma ciano esquerda
 
 		# portal esquerdo
-		bne $s5, 2, nao_portal_direito_ciano
+		bne $s5, 2, nao_portal_esquerdo_ciano
 		la $a0, display_address
 		addi $t0, $a0, 3844
 		bne $t2, $t0, nao_portal_esquerdo_ciano
@@ -5016,7 +5016,7 @@ movimentar_fantasma_rosa:
 		
 	mover_esquerda_rosa:
 		# portal esquerdo
-		bne $s5, 2, nao_portal_direito_rosa
+		beq $s5, 1, nao_portal_esquerdo_rosa
 		la $a0, display_address
 		addi $t0, $a0, 3844
 		bne $t2, $t0, nao_portal_esquerdo_rosa
@@ -5029,6 +5029,7 @@ movimentar_fantasma_rosa:
 		li $t0, 2
 		sw $t0, ultima_direcao_pink
 		j end_fantasma_rosa
+		
 		nao_portal_esquerdo_rosa:
 		
 		lw $t0, indicador_white_pink
@@ -5148,7 +5149,7 @@ movimentar_fantasma_rosa:
 		
 	mover_direita_rosa:
 		# portal direito
-		bne $s5, 2, nao_portal_direito_rosa
+		beq $s5, 1, nao_portal_direito_rosa
 		la $a0, display_address
 		addi $t0, $a0, 3956
 		bne $t4, $t0, nao_portal_direito_rosa
