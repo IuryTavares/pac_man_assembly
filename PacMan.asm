@@ -72,7 +72,7 @@ main:
 	jal paint_pts
 	jal contador_da_pontuacao
 	jal paint_stage_1
-	#j teste
+	j teste
 	wait_1: # espera uma tecla ser pressionada para iniciar o movimento do pac man
 	jal posicionar_personagens
 	jal paint_lives
@@ -3738,54 +3738,6 @@ movimentar_fantasma_laranja:
 			beq $t0, 1, mover_direita_orange
 			
 	tres_movimentos_possiveis_orange:
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
-		# pegando as coordenadas do pac man e do orange ghost
-		move $a0, $s0 # coordenada do pac man
-		jal calcular_coordenadas
-		move $t1, $v0 # linha do pac man
-		move $t2, $v1 # coluna do pac man
-		
-		move $a0, $s1 # coordenada do orange ghost
-		jal calcular_coordenadas
-		move $t3, $v0 # linha do orange ghost
-		move $t4, $v1 # coluna do orange ghost
-		
-		beq $t1, $t3, tres_mesma_linha_orange
-		beq $t2, $t4, tres_mesma_coluna_orange
-		lw $ra, 0($sp)
-		addi $sp, $sp, 4
-		j tres_sem_perseguicao_orange
-		
-		tres_mesma_linha_orange:
-			move $a0, $t1
-			move $a1, $t2
-			move $a2, $t3
-			move $a3, $t4
-			jal distancia_euclidiana
-			lw $ra, 0($sp)
-			addi $sp, $sp, 4
-			bgt $v0, 5, tres_sem_perseguicao_orange
-			lw $t0, 0xffff0004
-			beq $t0, 97, mover_esquerda_orange # a
-			beq $t0, 100, mover_direita_orange # d
-		
-		tres_mesma_coluna_orange:
-			move $a0, $t1
-			move $a1, $t2
-			move $a2, $t3
-			move $a3, $t4
-			jal distancia_euclidiana
-			lw $ra, 0($sp)
-			addi $sp, $sp, 4
-			bgt $v0, 5, tres_sem_perseguicao_orange
-			lw $t0, 0xffff0004
-			beq $t0, 119, mover_cima_orange # w
-			beq $t0, 115, mover_baixo_orange # s
-		
-		tres_sem_perseguicao_orange:
-		
-	
 		lw $t0, 0xffff0004 	# ultimo movimento do pac man 
 		li $v0, 42
 		li $a1, 2
@@ -3865,53 +3817,6 @@ movimentar_fantasma_laranja:
 	 		beq $a0, 1, mover_direita_orange
 
 	quatro_movimentos_possiveis_orange:
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
-		# pegando as coordenadas do pac man e do orange ghost
-		move $a0, $s0 # coordenada do pac man
-		jal calcular_coordenadas
-		move $t1, $v0 # linha do pac man
-		move $t2, $v1 # coluna do pac man
-		
-		move $a0, $s1 # coordenada do orange ghost
-		jal calcular_coordenadas
-		move $t3, $v0 # linha do orange ghost
-		move $t4, $v1 # coluna do orange ghost
-		
-		beq $t1, $t3, quatro_mesma_linha_orange
-		beq $t2, $t4, quatro_mesma_coluna_orange
-		lw $ra, 0($sp)
-		addi $sp, $sp, 4
-		j quatro_sem_perseguicao_orange
-		
-		quatro_mesma_linha_orange:
-			move $a0, $t1
-			move $a1, $t2
-			move $a2, $t3
-			move $a3, $t4
-			jal distancia_euclidiana
-			lw $ra, 0($sp)
-			addi $sp, $sp, 4
-			bgt $v0, 5, quatro_sem_perseguicao_orange
-			lw $t0, 0xffff0004
-			beq $t0, 97, mover_esquerda_orange # a
-			beq $t0, 100, mover_direita_orange # d
-		
-		quatro_mesma_coluna_orange:
-			move $a0, $t1
-			move $a1, $t2
-			move $a2, $t3
-			move $a3, $t4
-			jal distancia_euclidiana
-			lw $ra, 0($sp)
-			addi $sp, $sp, 4
-			bgt $v0, 5, quatro_sem_perseguicao_orange
-			lw $t0, 0xffff0004
-			beq $t0, 119, mover_cima_orange # w
-			beq $t0, 115, mover_baixo_orange # s
-		
-		quatro_sem_perseguicao_orange:
-		
 		lw $t0, 0xffff0004
 		beq $t0, 119, mover_cima_orange # w
 		beq $t0, 97, mover_esquerda_orange # a
@@ -4323,53 +4228,6 @@ movimentar_fantasma_ciano:
 			beq $t0, 1, mover_direita_ciano
 			
 	tres_movimentos_possiveis_ciano:
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
-		# pegando as coordenadas do pac man e do ciano ghost
-		move $a0, $s0 # coordenada do pac man
-		jal calcular_coordenadas
-		move $t1, $v0 # linha do pac man
-		move $t2, $v1 # coluna do pac man
-		
-		move $a0, $s1 # coordenada do ciano ghost
-		jal calcular_coordenadas
-		move $t3, $v0 # linha do ciano ghost
-		move $t4, $v1 # coluna do ciano ghost
-		
-		beq $t1, $t3, tres_mesma_linha_ciano
-		beq $t2, $t4, tres_mesma_coluna_ciano
-		lw $ra, 0($sp)
-		addi $sp, $sp, 4
-		j tres_sem_perseguicao_ciano
-		
-		tres_mesma_linha_ciano:
-			move $a0, $t1
-			move $a1, $t2
-			move $a2, $t3
-			move $a3, $t4
-			jal distancia_euclidiana
-			lw $ra, 0($sp)
-			addi $sp, $sp, 4
-			bgt $v0, 5, tres_sem_perseguicao_ciano
-			lw $t0, 0xffff0004
-			beq $t0, 97, mover_esquerda_ciano # a
-			beq $t0, 100, mover_direita_ciano # d
-		
-		tres_mesma_coluna_ciano:
-			move $a0, $t1
-			move $a1, $t2
-			move $a2, $t3
-			move $a3, $t4
-			jal distancia_euclidiana
-			lw $ra, 0($sp)
-			addi $sp, $sp, 4
-			bgt $v0, 5, tres_sem_perseguicao_ciano
-			lw $t0, 0xffff0004
-			beq $t0, 119, mover_cima_ciano # w
-			beq $t0, 115, mover_baixo_ciano # s
-		
-		tres_sem_perseguicao_ciano:
-		
 		li $v0, 42 # 1 - fica corajoso e persegue o pac man
 		li $a1, 2  # 0 - fica assustado e foge do pac man
 		syscall
