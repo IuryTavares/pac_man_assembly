@@ -1,5 +1,10 @@
 #   	Fábio Alves - Arquitetura e organização de computadores 2018.1
-#								
+#	
+#	O MARS4_5 BUGA COM O BITMAP E MMIO ABERTOS SIMULTANEAMENTE.
+#	UTILIZE O MARSMod 0.0.1 DISPONIBILIZADO NO GITHUB DO PROJETO.
+#	
+#	https://github.com/fabioafreitas/pac_man_assembly
+#							
 #   	Tools -> KeyBoard and Display MMIO Simulator            
 #		Keyboard reciever data address: 0xffff0004          	
 #   	Tools -> Bitmap Display						
@@ -8,17 +13,6 @@
 #		Display Width in Pixels:  512				
 #		Display Height in Pixels: 256				
 #		Base address for display: 0x10010000 (static data)	
-
-#	(Detalhes importantes)
-#
-#	$s0 - posição do pac man	
-#	$s1 - posição do fantasma vermelho
-#	$s2 - posição do fantasma laranja
-#	$s3 - posição do fantasma ciano
-#	$s4 - posição do fantasma rosa
-#	$s5 - armazena o stage atual (1 ou 2)
-#	$s6 - armazena a quantidade de vidas (3 a 0)
-#	$s7 - salva a pontuação atual do jogo
 
 .macro sleep(%speed_in_miliseconds)
 	li $a0, %speed_in_miliseconds
@@ -62,6 +56,18 @@ ultima_direcao_pink:	.word 5		## 	(3) baixo 	(5) direita
 
 .text
 .globl main
+
+#	(Detalhes importantes)
+#
+#	$s0 - posição do pac man	
+#	$s1 - posição do fantasma vermelho
+#	$s2 - posição do fantasma laranja
+#	$s3 - posição do fantasma ciano
+#	$s4 - posição do fantasma rosa
+#	$s5 - armazena o stage atual (1 ou 2)
+#	$s6 - armazena a quantidade de vidas (3 a 0)
+#	$s7 - salva a pontuação atual do jogo
+
 main:
 	# configuações iniciais
 	li $s5, 1            	# indicando que estamos no stage 1
@@ -72,7 +78,7 @@ main:
 	jal paint_pts
 	jal contador_da_pontuacao
 	jal paint_stage_1
-	j teste
+	#j teste
 	wait_1: # espera uma tecla ser pressionada para iniciar o movimento do pac man
 	jal posicionar_personagens
 	jal paint_lives
@@ -80,6 +86,9 @@ main:
 	
 	game_loop_stage_1:
 	beqz $s6, game_over # checa se a quantidade de vidas é diferente de zero
+		# passagem de stage
+		beq $s7, 45, end_game_loop_stage_1 # 144 pontos stage 1
+		
 		# movimentação do pac man
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal contador_da_pontuacao
@@ -101,8 +110,6 @@ main:
 		jal configurar_colisao
 		beq $v0, 1, wait_1
 		sem_colisao_stage_1:
-		
-		beq $s7, 144, end_game_loop_stage_1 # 144 pontos stage 1
 	j game_loop_stage_1
 	end_game_loop_stage_1:
 	teste:
@@ -117,7 +124,9 @@ main:
 	press_any_key()
 
 	game_loop_stage_2:
-	beqz $s6, game_over 
+	beqz $s6, game_over
+		beq $s7, 90, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
+	
 		# movimentação do pac man
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal contador_da_pontuacao
@@ -139,8 +148,6 @@ main:
 		jal configurar_colisao
 		beq $v0, 1, wait_2
 		sem_colisao_stage_2:
-		
-		beq $s7, 274, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
 	j game_loop_stage_2
 	end_game_loop_stage_2:
 	
