@@ -85,14 +85,14 @@ main:
 	press_any_key()
 	
 	game_loop_stage_1:
-	beqz $s6, game_over # checa se a quantidade de vidas é diferente de zero
-		# passagem de stage
-		beq $s7, 45, end_game_loop_stage_1 # 144 pontos stage 1
-		
+	beqz $s6, game_over # checa se a quantidade de vidas é igual a zero
 		# movimentação do pac man
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal contador_da_pontuacao
 		jal mover_pac_man
+		
+		# passagem de estágio
+		beq $s7, 50, end_game_loop_stage_1 # 144 pontos no máximo, stage 1
 		
 		# movimentação dos fantasmas
 		jal movimentar_fantasma_vermelho
@@ -125,12 +125,12 @@ main:
 
 	game_loop_stage_2:
 	beqz $s6, game_over
-		beq $s7, 90, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
-	
 		# movimentação do pac man
 		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
 		jal contador_da_pontuacao
 		jal mover_pac_man
+		
+		beq $s7, 101, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
 		
 		# movimentação dos fantasmas
 		jal movimentar_fantasma_vermelho
