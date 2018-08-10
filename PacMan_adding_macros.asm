@@ -1,5 +1,5 @@
 ############################################################################
-#   	Fabio Alves - Arquitetura e organizacao de computadores 2018.1    #
+#   	Fabio Alves - Arquitetura e organizacao de computadores 2018.1     #
 #									   #
 #	O MARS4_5 BUGA COM O BITMAP E MMIO ABERTOS SIMULTANEAMENTE.	   #
 #	UTILIZE O MARSMod 0.0.1 DISPONIBILIZADO NO GITHUB DO PROJETO.	   #
@@ -24,6 +24,7 @@
 ##################
 
 # da um sleep de X mili segundos dados na entrada
+# (1 pixel a cada X milisegundos)
 .macro sleep(%speed_in_miliseconds)
 	li $a0, %speed_in_miliseconds
 	li $v0, 32
@@ -54,7 +55,8 @@
 .end_macro
 
 
-
+# deve ser usado antes de um paint_line()
+# configura a cor e o intervalo de pintura
 .macro set_cor_intervalo(%intervalo_de_pintura, %cor)
 	li $t1, %intervalo_de_pintura 	# intervalo de pixels de pintura
 	lw $a3, %cor 					# cor
@@ -62,7 +64,7 @@
 
 
 
-# esse macro pinta de acordo com o endereco
+# efetua a pintura de acordo com o address
 .macro paint_by_address(%address)
 	addi $t2, $a0, %address
 	add $t2, $t2, $t1
@@ -71,8 +73,8 @@
 
 
 
-# esse macro pinta de acordo com o endereco, usado apenas
-# na funcao contador display
+# efetua a pintura de acordo com o address, usado apenas
+# na função "contador_display"
 .macro paint_by_address_2(%address)
 	addi $t1, $a0, %address
 	add $t1, $t1, $t0
@@ -80,6 +82,47 @@
 .end_macro
 
 
+
+# seta a pontuação inicial
+.macro pontuacao(%points)
+	li $s7, %points
+.end_macro
+
+
+# seta a quantidade de vidas
+.macro vidas(%vidas)
+	li $s6, %vidas
+.end_macro
+
+
+
+
+
+# seta o stage atual
+.macro stage(%stage)
+	li $s5, %stage
+.end_macro
+
+# (cor de teste) (cor do pixel) (cor do fantasma) (registrador de direcao)
+# (registrador do fantasma) (imediato movimento)
+.macro move_ghost(%corTeste,%corPaint,%corGhost,%regDir,%regGhost,%immMove,%immWhiteBlack,%WhiteBlack,%immLastDir,%lastDir)
+	lw $a3, %corTeste
+	lw $a2, 0(%redDir)		
+	beq $a3, $a2, move_label
+	j dont_move_label	
+	move_label:
+	lw $a3, %corPaint
+	sw $a3, 0(%regGhost)
+	lw $a3, %corGhost
+	sw $a3, 0(%redDir)
+	addi %regGhost , %regGhost, %immMove
+	li $t0, %immWhiteBlack
+	sw $t0, %WhiteBlack
+	li $t0, %immLastDir
+	sw $t0, %lastDir
+	j end_fantasma_rosa
+	dont_move_label:
+.end_macro
 
 
 ################
@@ -126,7 +169,7 @@ ultima_direcao_pink:	.word 5		## 	(3) baixo 	(5) direita
 #	$s1 - posicao do fantasma vermelho 		#
 #	$s2 - posicao do fantasma laranja 		#
 #	$s3 - posicao do fantasma ciano 		#
-#	$s4 - posicao do fantasma rosa 		#
+#	$s4 - posicao do fantasma rosa 			#
 #	$s5 - armazena o stage atual (1 ou 2)		#
 #	$s6 - armazena a quantidade de vidas (3 a 0)	#
 #	$s7 - salva a pontuacao atual do jogo		#
@@ -134,38 +177,45 @@ ultima_direcao_pink:	.word 5		## 	(3) baixo 	(5) direita
 .text
 .globl main
 main:
-	# configuaÃ§Ãµes iniciais
-	li $s5, 1            	# indicando que estamos no stage 1
-	li $s6, 3		# indicando que temos 3 vidas iniciais
-	li $s7, 0		# indicando que a pontuacao inicial Ã© zero
-#j a
+	# configurações do jogo
+	pontuacao(0)	# indicando que a pontuacao inicial com zero
+	stage(1)       	# indicando que estamos no stage 1
+	vidas(3)	# indicando que temos 3 vidas iniciais
+	
+	# pintando componentes do display
 	jal paint_stage_text
 	jal paint_pts
 	jal contador_da_pontuacao
 	jal paint_stage_1
-
-	wait_1: # espera uma tecla ser pressionada para iniciar o movimento do pac man
+	
+	# espera uma tecla ser pressionada para iniciar o movimento do pac man
+	wait_1: 
 	jal posicionar_personagens
 	jal paint_lives
 	press_any_key()
 	
+	# game_loop do stage 1
 	game_loop_stage_1:
-	beqz $s6, game_over # checa se a quantidade de vidas Ã© igual a zero
+	beqz $s6, game_over # branch se possui zero vidas
 		# movimentacao do pac man
-		sleep(200) # velocidade do pac man (PIXEL / MILISEGUNDO)
+		sleep(35) # velocidade do pac man
 		jal contador_da_pontuacao
 		jal mover_pac_man
 		
 		# passagem de estagio
-		beq $s7, 50, end_game_loop_stage_1 # 144 pontos no maximo, stage 1
+		beq $s7, 101, end_game_loop_stage_1 # 144 pontos no maximo, stage 1
 		
 		# movimentacao dos fantasmas
+		sleep(180) # velocidade do fantasma vermelho
 		jal movimentar_fantasma_vermelho
 		beq $v0, 1, colisao_stage_1
+		#sleep(45) # velocidade do fantasma laranja
 		jal movimentar_fantasma_laranja
 		beq $v0, 1, colisao_stage_1
+		#sleep(45) # velocidade do fantasma ciano
 		jal movimentar_fantasma_ciano
 		beq $v0, 1, colisao_stage_1
+		#sleep(45) # velocidade do fantasma rosa
 		jal movimentar_fantasma_rosa
 		beq $v0, 1, colisao_stage_1
 		
@@ -177,13 +227,14 @@ main:
 		sem_colisao_stage_1:
 	j game_loop_stage_1
 	end_game_loop_stage_1:
-a:
+	
+	stage(2)
 	jal resetar_labirinto
-	li $s5, 2
 	jal paint_stage_2
 	jal paint_stage_text
-
-	wait_2: # espera uma tecla ser pressionada para iniciar o movimento do pac man
+	
+	# espera uma tecla ser pressionada para iniciar o movimento do pac man
+	wait_2: 
 	jal posicionar_personagens
 	jal paint_lives
 	press_any_key()
@@ -195,15 +246,19 @@ a:
 		jal contador_da_pontuacao
 		jal mover_pac_man
 		
-		beq $s7, 101, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
+		beq $s7, 201, end_game_loop_stage_2 # 130 pontos stage 2, 274 no total.
 		
 		# movimentacao dos fantasmas
+		sleep(45) # velocidade do fantasma vermelho
 		jal movimentar_fantasma_vermelho
 		beq $v0, 1, colisao_stage_2
+		sleep(45) # velocidade do fantasma laranja
 		jal movimentar_fantasma_laranja
 		beq $v0, 1, colisao_stage_2
+		sleep(45) # velocidade do fantasma ciano
 		jal movimentar_fantasma_ciano
 		beq $v0, 1, colisao_stage_2
+		sleep(45) # velocidade do fantasma rosa
 		jal movimentar_fantasma_rosa
 		beq $v0, 1, colisao_stage_2
 		
@@ -3888,21 +3943,9 @@ movimentar_fantasma_rosa:
 		# branco preto
 		mover_direita_rosa_WHITE_BLACK:
 		
-		lw $a3, color_black
-		lw $a2, 0($t4)		
-		beq $a3, $a2, rosa_valido_mover_direita_white_black
-		j rosa_nao_valido_mover_direita_white_black	
-		rosa_valido_mover_direita_white_black:
-		lw $a3, color_white
-		sw $a3, 0($s4)
-		lw $a3, color_pink
-		sw $a3, 0($t4)
-		addi $s4, $s4, 4
-		sw $zero, indicador_white_pink
-		li $t0, 5
-		sw $t0, ultima_direcao_pink
-		j end_fantasma_rosa
-		rosa_nao_valido_mover_direita_white_black:
+		
+	
+	move_ghost(color_black, color_white, color_pink, $t4, $s4, 4, 0, indicador_white_pink, 5, ultima_direcao_pink)
 
 	end_fantasma_rosa:
 	
